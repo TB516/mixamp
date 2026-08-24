@@ -1,3 +1,7 @@
 {
-    "recommendations": ["ms-vscode-remote.remote-ssh", "typescriptteam.native-preview"]
+  "recommendations": [
+    "ms-vscode-remote.remote-ssh",
+    "oxc.oxc-vscode",
+    "typescriptteam.native-preview"
+  ]
 }

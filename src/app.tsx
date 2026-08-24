@@ -1,45 +1,40 @@
 import * as Gtk from "@gtkx/gi/gtk";
-import {
-    AdwApplication,
-    AdwApplicationWindow,
-    AdwHeaderBar,
-    AdwToolbarView,
-} from "@gtkx/jsx/adw";
+import { AdwApplication, AdwApplicationWindow, AdwHeaderBar, AdwToolbarView } from "@gtkx/jsx/adw";
 import { GtkBox, GtkButton, GtkLabel } from "@gtkx/jsx/gtk";
 import { quit } from "@gtkx/react";
 
 const MainWindow = () => {
-    return (
-        <AdwApplicationWindow
-            title="Mixamp"
-            defaultWidth={720}
-            defaultHeight={480}
-            onCloseRequest={quit}
+  return (
+    <AdwApplicationWindow
+      title="Mixamp"
+      defaultWidth={720}
+      defaultHeight={480}
+      onCloseRequest={quit}
+    >
+      <AdwToolbarView topBar={<AdwHeaderBar />}>
+        <GtkBox
+          orientation={Gtk.Orientation.VERTICAL}
+          spacing={16}
+          marginTop={32}
+          marginBottom={32}
+          marginStart={32}
+          marginEnd={32}
+          valign={Gtk.Align.CENTER}
+          halign={Gtk.Align.CENTER}
         >
-            <AdwToolbarView topBar={<AdwHeaderBar />}>
-                <GtkBox
-                    orientation={Gtk.Orientation.VERTICAL}
-                    spacing={16}
-                    marginTop={32}
-                    marginBottom={32}
-                    marginStart={32}
-                    marginEnd={32}
-                    valign={Gtk.Align.CENTER}
-                    halign={Gtk.Align.CENTER}
-                >
-                    <GtkLabel cssClasses={["title-1"]}>Mixamp</GtkLabel>
-                    <GtkLabel>PipeWire mixer controls will appear here.</GtkLabel>
-                    <GtkButton label="Refresh devices" />
-                </GtkBox>
-            </AdwToolbarView>
-        </AdwApplicationWindow>
-    );
+          <GtkLabel cssClasses={["title-1"]}>Mixamp</GtkLabel>
+          <GtkLabel>PipeWire mixer controls will appear here.</GtkLabel>
+          <GtkButton label="Refresh devices" />
+        </GtkBox>
+      </AdwToolbarView>
+    </AdwApplicationWindow>
+  );
 };
 
 export const App = () => (
-    <AdwApplication>
-        <MainWindow />
-    </AdwApplication>
+  <AdwApplication>
+    <MainWindow />
+  </AdwApplication>
 );
 
 export default App;
