@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Mixamp
+Comment=Control application audio with PipeWire
+Exec=mixamp
+Icon=io.github.TB516.mixamp
+Terminal=false
+Categories=AudioVideo;Audio;Mixer;
+StartupNotify=true

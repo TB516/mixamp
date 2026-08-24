@@ -1,0 +1,28 @@
+{
+    "files.watcherExclude": {
+        ".flatpak-builder/**": true,
+        ".flatpak-dev/**": true,
+        "build-flatpak/**": true,
+        "dist/**": true,
+        "node_modules/**": true,
+        "out-tsc/**": true
+    },
+    "search.exclude": {
+        "**/.flatpak-builder": true,
+        "**/.flatpak-dev": true,
+        "**/build-flatpak": true,
+        "**/dist": true,
+        "**/node_modules": true,
+        "**/out-tsc": true
+    },
+    "search.followSymlinks": false,
+    "yaml.schemas": {
+        "https://www.schemastore.org/flatpak-manifest.json": [
+            "flatpak/io.github.TB516.mixamp.dev.yml",
+            "flatpak/io.github.TB516.mixamp.yml",
+            "flatpak/modules/libcap-ng.yml"
+        ]
+    },
+    "js/ts.experimental.useTsgo": true,
+    "js/ts.tsdk.path": "./node_modules/typescript"
+}

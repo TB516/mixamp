@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.TB516.mixamp</id>
+  <name>Mixamp</name>
+  <summary>Control application audio with PipeWire</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <description>
+    <p>Mixamp is a desktop mixer for PipeWire audio streams.</p>
+  </description>
+  <launchable type="desktop-id">io.github.TB516.mixamp.desktop</launchable>
+  <provides>
+    <binary>mixamp</binary>
+  </provides>
+  <categories>
+    <category>AudioVideo</category>
+    <category>Audio</category>
+  </categories>
+  <content_rating type="oars-1.1" />
+</component>

@@ -1,0 +1,229 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly APP_ID="io.github.TB516.mixamp"
+readonly SSH_HOST="mixamp-flatpak"
+readonly PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly STATE_DIR="$PROJECT_ROOT/.flatpak-dev"
+readonly SSH_DIR="$STATE_DIR/ssh"
+readonly DEV_HOME="$STATE_DIR/home"
+readonly BUILD_DIR="$STATE_DIR/build"
+readonly PNPM_STORE_DIR="$STATE_DIR/pnpm-store"
+readonly PNPM_CACHE_DIR="$STATE_DIR/pnpm-cache"
+readonly PNPM_STATE_DIR="$STATE_DIR/pnpm-state"
+readonly MANIFEST="$PROJECT_ROOT/flatpak/io.github.TB516.mixamp.dev.yml"
+readonly PORT="${MIXAMP_DEV_SSH_PORT:-22222}"
+readonly SANDBOX_HOME="$HOME/.var/app/$APP_ID"
+readonly SSHD_LOG="$SSH_DIR/sshd.log"
+
+server_pid=""
+
+require_command() {
+    if command -v "$1" >/dev/null 2>&1; then
+        return
+    fi
+
+    echo "Missing required host command: $1" >&2
+    exit 1
+}
+
+require_command flatpak
+require_command flatpak-builder
+require_command ssh
+require_command ssh-keygen
+require_command ss
+
+readonly FLATPAK_ARCH="$(flatpak --default-arch)"
+readonly RUNTIME_LIBDIR="/usr/lib/$FLATPAK_ARCH-linux-gnu"
+
+if [[ ! "$PORT" =~ ^[0-9]+$ ]] || ((10#$PORT < 1 || 10#$PORT > 65535)); then
+    echo "MIXAMP_DEV_SSH_PORT must be a number from 1 through 65535." >&2
+    exit 1
+fi
+
+mkdir -p "$SSH_DIR" "$DEV_HOME"
+chmod 700 "$SSH_DIR" "$DEV_HOME"
+
+port_is_listening() {
+    ss -H -ltn "sport = :$PORT" | read -r _
+}
+
+ssh_is_ready() {
+    if [[ ! -f "$SSH_DIR/config" ]]; then
+        return 1
+    fi
+
+    ssh \
+        -F "$SSH_DIR/config" \
+        -p "$PORT" \
+        -o BatchMode=yes \
+        -o ConnectTimeout=2 \
+        "$SSH_HOST" \
+        true \
+        </dev/null \
+        >/dev/null \
+        2>&1
+}
+
+print_connection_details() {
+    cat <<EOF
+
+Mixamp's development Flatpak is ready.
+
+Add this line to ~/.ssh/config once:
+    Include $SSH_DIR/config
+
+Then connect to "$SSH_HOST" with VS Code Remote-SSH.
+Open this workspace after connecting:
+    $PROJECT_ROOT
+EOF
+}
+
+cleanup() {
+    if [[ -z "$server_pid" ]]; then
+        return
+    fi
+
+    if kill -0 "$server_pid" 2>/dev/null; then
+        kill "$server_pid" 2>/dev/null || true
+        wait "$server_pid" 2>/dev/null || true
+    fi
+}
+
+trap cleanup EXIT
+trap 'exit 129' HUP
+trap 'exit 130' INT
+trap 'exit 143' TERM
+
+if port_is_listening; then
+    echo "Port $PORT is already in use. Nothing was stopped." >&2
+    echo "Close the process using it or set MIXAMP_DEV_SSH_PORT to another port." >&2
+    exit 1
+fi
+
+builder_args=(
+    --user
+    --force-clean
+    --state-dir="$STATE_DIR/builder-state"
+)
+
+if [[ -d "$BUILD_DIR/files" ]]; then
+    builder_args+=(--skip-if-unchanged)
+fi
+
+has_flatpak_ref() {
+    flatpak info --user "$1" >/dev/null 2>&1 || flatpak info --system "$1" >/dev/null 2>&1
+}
+
+if ! has_flatpak_ref "org.gnome.Sdk//50" || \
+    ! has_flatpak_ref "org.freedesktop.Sdk.Extension.node24//25.08"; then
+    builder_args+=(--install-deps-from=flathub)
+fi
+
+if flatpak-builder "${builder_args[@]}" "$BUILD_DIR" "$MANIFEST"; then
+    builder_status=0
+else
+    builder_status=$?
+fi
+
+if ((builder_status != 0 && builder_status != 42)); then
+    exit "$builder_status"
+fi
+
+if [[ ! -f "$SSH_DIR/id_ed25519" ]]; then
+    ssh-keygen -q -t ed25519 -N "" -C "mixamp Flatpak development" -f "$SSH_DIR/id_ed25519"
+fi
+
+if [[ ! -f "$SSH_DIR/ssh_host_ed25519_key" ]]; then
+    ssh-keygen -q -t ed25519 -N "" -C "mixamp Flatpak SSH host" -f "$SSH_DIR/ssh_host_ed25519_key"
+fi
+
+cp "$SSH_DIR/id_ed25519.pub" "$SSH_DIR/authorized_keys"
+chmod 600 "$SSH_DIR/id_ed25519" "$SSH_DIR/authorized_keys" "$SSH_DIR/ssh_host_ed25519_key"
+chmod 644 "$SSH_DIR/id_ed25519.pub" "$SSH_DIR/ssh_host_ed25519_key.pub"
+
+cat > "$SSH_DIR/sshd_config" <<EOF
+Port $PORT
+ListenAddress 127.0.0.1
+HostKey $SSH_DIR/ssh_host_ed25519_key
+AuthorizedKeysFile $SSH_DIR/authorized_keys
+PidFile /tmp/mixamp-sshd.pid
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+PermitRootLogin no
+AllowUsers $USER
+StrictModes yes
+AllowTcpForwarding yes
+AllowAgentForwarding no
+X11Forwarding no
+PermitTunnel no
+GatewayPorts no
+UseDNS no
+Subsystem sftp internal-sftp
+SetEnv HOME=$DEV_HOME FLATPAK_ID=$APP_ID FLATPAK_ARCH=$FLATPAK_ARCH container=flatpak DBUS_SESSION_BUS_ADDRESS=unix:path=/run/flatpak/bus GTK_A11Y=none GI_TYPELIB_PATH=/app/lib/girepository-1.0 LD_LIBRARY_PATH=/app/lib:$RUNTIME_LIBDIR/GL/default/lib:/usr/lib/sdk/node24/lib:$RUNTIME_LIBDIR/codecs-extra/lib PKG_CONFIG_PATH=/app/lib/pkgconfig:/app/share/pkgconfig:/usr/lib/pkgconfig:/usr/share/pkgconfig ACLOCAL_PATH=/app/share/aclocal C_INCLUDE_PATH=/app/include CPLUS_INCLUDE_PATH=/app/include LDFLAGS=-L/app/lib GST_PLUGIN_SYSTEM_PATH=/app/lib/gstreamer-1.0:/usr/lib/extensions/gstreamer-1.0:$RUNTIME_LIBDIR/codecs-extra/lib/gstreamer-1.0:$RUNTIME_LIBDIR/gstreamer-1.0 ALSA_CONFIG_DIR=/usr/share/alsa ALSA_CONFIG_PATH=/usr/share/alsa/alsa-flatpak.conf __EGL_EXTERNAL_PLATFORM_CONFIG_DIRS=/etc/egl/egl_external_platform.d:$RUNTIME_LIBDIR/GL/egl/egl_external_platform.d:/usr/share/egl/egl_external_platform.d PNPM_CONFIG_STORE_DIR=$PNPM_STORE_DIR PNPM_CONFIG_CACHE_DIR=$PNPM_CACHE_DIR PNPM_CONFIG_STATE_DIR=$PNPM_STATE_DIR WAYLAND_DISPLAY=${WAYLAND_DISPLAY:-wayland-0} XDG_RUNTIME_DIR=/run/user/$(id -u) XDG_CACHE_HOME=$SANDBOX_HOME/cache XDG_CONFIG_HOME=$SANDBOX_HOME/config XDG_DATA_HOME=$SANDBOX_HOME/data XDG_STATE_HOME=$SANDBOX_HOME/.local/state XDG_CONFIG_DIRS=/app/etc/xdg:/etc/xdg XDG_DATA_DIRS=/app/share:/usr/share:/usr/share/runtime/share:/run/host/user-share:/run/host/share
+EOF
+chmod 600 "$SSH_DIR/sshd_config"
+
+read -r host_key_type host_key_data _ < "$SSH_DIR/ssh_host_ed25519_key.pub"
+printf '[127.0.0.1]:%s %s %s\n' "$PORT" "$host_key_type" "$host_key_data" > "$SSH_DIR/known_hosts"
+chmod 600 "$SSH_DIR/known_hosts"
+
+cat > "$SSH_DIR/config" <<EOF
+Host $SSH_HOST
+    HostName 127.0.0.1
+    Port $PORT
+    User $USER
+    IdentityFile $SSH_DIR/id_ed25519
+    IdentitiesOnly yes
+    UserKnownHostsFile $SSH_DIR/known_hosts
+    StrictHostKeyChecking yes
+    PasswordAuthentication no
+EOF
+chmod 600 "$SSH_DIR/config"
+
+: > "$SSHD_LOG"
+
+# The GNOME SDK exceeds VS Code's runtime requirements, but VS Code's probe
+# cannot find libstdc++ in the SDK's multiarch layout without an ld.so cache.
+# This marker is VS Code's supported way for the host environment to skip it.
+flatpak build \
+    --die-with-parent \
+    --readonly \
+    --with-appdir \
+    --talk-name=org.freedesktop.DBus \
+    --filesystem="$PROJECT_ROOT" \
+    "$BUILD_DIR" \
+    /bin/sh \
+    -c 'touch /tmp/vscode-skip-server-requirements-check && exec /app/sbin/sshd "$@"' \
+    sh \
+    -D \
+    -e \
+    -f "$SSH_DIR/sshd_config" \
+    >"$SSHD_LOG" \
+    2>&1 &
+server_pid=$!
+
+for _ in {1..50}; do
+    if ssh_is_ready; then
+        print_connection_details
+        echo
+        echo "The SSH server is listening on 127.0.0.1:$PORT. Press Ctrl+C to stop it."
+        wait "$server_pid"
+        server_pid=""
+        exit
+    fi
+
+    if ! kill -0 "$server_pid" 2>/dev/null; then
+        wait "$server_pid" || true
+        server_pid=""
+        echo "The Mixamp SSH server exited before it became ready:" >&2
+        tail -n 30 "$SSHD_LOG" >&2
+        exit 1
+    fi
+
+    sleep 0.1
+done
+
+echo "The Mixamp SSH server did not become ready:" >&2
+tail -n 30 "$SSHD_LOG" >&2
+exit 1
