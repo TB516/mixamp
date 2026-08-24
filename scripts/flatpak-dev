@@ -3,6 +3,7 @@ set -euo pipefail
 
 readonly APP_ID="io.github.TB516.mixamp"
 readonly SSH_HOST="mixamp-flatpak"
+readonly SERVICE_NAME="mixamp-flatpak-dev.service"
 readonly PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly STATE_DIR="$PROJECT_ROOT/.flatpak-dev"
 readonly SSH_DIR="$STATE_DIR/ssh"
@@ -13,6 +14,9 @@ readonly PNPM_CACHE_DIR="$STATE_DIR/pnpm-cache"
 readonly PNPM_STATE_DIR="$STATE_DIR/pnpm-state"
 readonly MANIFEST="$PROJECT_ROOT/flatpak/io.github.TB516.mixamp.dev.yml"
 readonly PORT="${MIXAMP_DEV_SSH_PORT:-22222}"
+readonly START_TIMEOUT="${MIXAMP_DEV_SSH_START_TIMEOUT:-1800}"
+readonly CONNECTION_TIMEOUT="${MIXAMP_DEV_SSH_CONNECTION_TIMEOUT:-120}"
+readonly IDLE_TIMEOUT="${MIXAMP_DEV_SSH_IDLE_TIMEOUT:-30}"
 readonly DEV_PATH="/app/bin:/usr/lib/sdk/node24/bin:/usr/bin"
 readonly SANDBOX_HOME="$HOME/.var/app/$APP_ID"
 readonly SSHD_LOG="$SSH_DIR/sshd.log"
@@ -28,29 +32,20 @@ require_command() {
     exit 1
 }
 
-require_command flatpak
-require_command flatpak-builder
-require_command ssh
-require_command ssh-keygen
-require_command ss
+validate_settings() {
+    if [[ ! "$PORT" =~ ^[0-9]+$ ]] || ((10#$PORT < 1 || 10#$PORT > 65535)); then
+        echo "MIXAMP_DEV_SSH_PORT must be a number from 1 through 65535." >&2
+        exit 1
+    fi
 
-readonly FLATPAK_ARCH="$(flatpak --default-arch)"
-readonly RUNTIME_LIBDIR="/usr/lib/$FLATPAK_ARCH-linux-gnu"
-
-if [[ ! "$PORT" =~ ^[0-9]+$ ]] || ((10#$PORT < 1 || 10#$PORT > 65535)); then
-    echo "MIXAMP_DEV_SSH_PORT must be a number from 1 through 65535." >&2
-    exit 1
-fi
-
-mkdir -p "$SSH_DIR" "$DEV_HOME"
-chmod 700 "$SSH_DIR" "$DEV_HOME"
-
-# Some VS Code extensions discover tools from a fresh login shell instead of
-# inheriting the Remote-SSH environment. Give that shell the SDK tool path.
-cat > "$DEV_HOME/.profile" <<EOF
-export PATH="$DEV_PATH"
-EOF
-chmod 600 "$DEV_HOME/.profile"
+    local name
+    for name in START_TIMEOUT CONNECTION_TIMEOUT IDLE_TIMEOUT; do
+        if [[ ! "${!name}" =~ ^[0-9]+$ ]] || ((10#${!name} < 1)); then
+            echo "$name must be a positive number of seconds." >&2
+            exit 1
+        fi
+    done
+}
 
 port_is_listening() {
     ss -H -ltn "sport = :$PORT" | read -r _
@@ -97,6 +92,146 @@ cleanup() {
         wait "$server_pid" 2>/dev/null || true
     fi
 }
+
+ssh_connection_is_active() {
+    local _
+    while read -r _; do
+        return 0
+    done < <(ss -H -tn state established "sport = :$PORT")
+
+    return 1
+}
+
+service_is_active() {
+    systemctl --user is-active --quiet "$SERVICE_NAME"
+}
+
+show_service_logs() {
+    journalctl --user -u "$SERVICE_NAME" --no-pager -n 40
+}
+
+start_service() {
+    require_command systemctl
+    require_command systemd-run
+    require_command ssh
+    require_command ss
+    validate_settings
+
+    if ! service_is_active; then
+        if port_is_listening; then
+            echo "Port $PORT is already in use. Nothing was stopped." >&2
+            echo "Close the process using it or set MIXAMP_DEV_SSH_PORT to another port." >&2
+            exit 1
+        fi
+
+        systemctl --user reset-failed "$SERVICE_NAME" 2>/dev/null || true
+
+        local systemd_args=(
+            --user
+            --unit="$SERVICE_NAME"
+            --collect
+            --property=Type=exec
+            --working-directory="$PROJECT_ROOT"
+            --setenv="MIXAMP_DEV_SSH_PORT=$PORT"
+            --setenv="MIXAMP_DEV_SSH_CONNECTION_TIMEOUT=$CONNECTION_TIMEOUT"
+            --setenv="MIXAMP_DEV_SSH_IDLE_TIMEOUT=$IDLE_TIMEOUT"
+        )
+
+        local name
+        for name in DISPLAY WAYLAND_DISPLAY XDG_RUNTIME_DIR DBUS_SESSION_BUS_ADDRESS; do
+            if [[ -v "$name" ]]; then
+                systemd_args+=(--setenv="$name=${!name}")
+            fi
+        done
+
+        systemd-run "${systemd_args[@]}" "$PROJECT_ROOT/scripts/flatpak-dev" serve
+    fi
+
+    local deadline=$((SECONDS + START_TIMEOUT))
+    local next_update=$((SECONDS + 10))
+    while ((SECONDS < deadline)); do
+        if ssh_is_ready; then
+            print_connection_details
+            return
+        fi
+
+        if ! service_is_active; then
+            echo "The Mixamp development service exited before SSH became ready:" >&2
+            show_service_logs >&2
+            exit 1
+        fi
+
+        if ((SECONDS >= next_update)); then
+            echo "The Flatpak build is still running. Use '$0 logs' to see its output."
+            next_update=$((SECONDS + 10))
+        fi
+
+        sleep 0.5
+    done
+
+    echo "The Mixamp development service did not become ready within $START_TIMEOUT seconds." >&2
+    show_service_logs >&2
+    exit 1
+}
+
+stop_service() {
+    require_command systemctl
+
+    if ! service_is_active; then
+        echo "The Mixamp development service is not running."
+        return
+    fi
+
+    systemctl --user stop "$SERVICE_NAME"
+    echo "The Mixamp development service stopped."
+}
+
+case "${1:-start}" in
+    start)
+        start_service
+        exit
+        ;;
+    stop)
+        stop_service
+        exit
+        ;;
+    status)
+        require_command systemctl
+        systemctl --user status "$SERVICE_NAME" --no-pager
+        exit
+        ;;
+    logs)
+        require_command journalctl
+        journalctl --user -u "$SERVICE_NAME" -f
+        exit
+        ;;
+    serve)
+        ;;
+    *)
+        echo "Usage: $0 [start|stop|status|logs]" >&2
+        exit 2
+        ;;
+esac
+
+require_command flatpak
+require_command flatpak-builder
+require_command ssh
+require_command ssh-keygen
+require_command ss
+validate_settings
+
+readonly FLATPAK_ARCH="$(flatpak --default-arch)"
+readonly RUNTIME_LIBDIR="/usr/lib/$FLATPAK_ARCH-linux-gnu"
+
+mkdir -p "$SSH_DIR" "$DEV_HOME"
+chmod 700 "$SSH_DIR" "$DEV_HOME"
+
+# Some VS Code extensions discover tools from a fresh login shell instead of
+# inheriting the Remote-SSH environment. Give that shell the SDK tool path.
+cat > "$DEV_HOME/.profile" <<EOF
+export PATH="$DEV_PATH"
+EOF
+chmod 600 "$DEV_HOME/.profile"
 
 trap cleanup EXIT
 trap 'exit 129' HUP
@@ -213,12 +348,8 @@ server_pid=$!
 
 for _ in {1..50}; do
     if ssh_is_ready; then
-        print_connection_details
-        echo
-        echo "The SSH server is listening on 127.0.0.1:$PORT. Press Ctrl+C to stop it."
-        wait "$server_pid"
-        server_pid=""
-        exit
+        echo "The SSH server is listening on 127.0.0.1:$PORT."
+        break
     fi
 
     if ! kill -0 "$server_pid" 2>/dev/null; then
@@ -232,6 +363,55 @@ for _ in {1..50}; do
     sleep 0.1
 done
 
-echo "The Mixamp SSH server did not become ready:" >&2
-tail -n 30 "$SSHD_LOG" >&2
-exit 1
+if ! ssh_is_ready; then
+    echo "The Mixamp SSH server did not become ready:" >&2
+    tail -n 30 "$SSHD_LOG" >&2
+    exit 1
+fi
+
+connection_started_at=0
+disconnected_at=0
+saw_stable_connection=0
+startup_deadline=$((SECONDS + CONNECTION_TIMEOUT))
+
+while kill -0 "$server_pid" 2>/dev/null; do
+    if ssh_connection_is_active; then
+        if ((connection_started_at == 0)); then
+            connection_started_at=$SECONDS
+        fi
+
+        # Ignore the launcher's short readiness probes. A real Remote-SSH
+        # management connection remains open for the life of the window.
+        if ((SECONDS - connection_started_at >= 2)); then
+            saw_stable_connection=1
+            disconnected_at=0
+        fi
+    else
+        connection_started_at=0
+
+        if ((saw_stable_connection == 1 && disconnected_at == 0)); then
+            disconnected_at=$SECONDS
+        fi
+
+        if ((saw_stable_connection == 0 && SECONDS >= startup_deadline)); then
+            echo "No Remote-SSH connection arrived within $CONNECTION_TIMEOUT seconds."
+            exit
+        fi
+
+        if ((disconnected_at > 0 && SECONDS - disconnected_at >= IDLE_TIMEOUT)); then
+            echo "Remote-SSH disconnected for $IDLE_TIMEOUT seconds."
+            exit
+        fi
+    fi
+
+    sleep 1
+done
+
+server_status=0
+if wait "$server_pid"; then
+    server_status=0
+else
+    server_status=$?
+fi
+server_pid=""
+exit "$server_status"
