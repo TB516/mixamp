@@ -10,6 +10,7 @@
     "build": "gtkx build",
     "codegen": "gtkx codegen",
     "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "typecheck": "gtkx codegen && tsc --noEmit",
