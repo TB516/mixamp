@@ -42,6 +42,14 @@ pnpm dev
 
 Use `pnpm check` to run code generation, type checking, and tests.
 
+To run a one-off command in the development Flatpak from the host, use:
+
+```sh
+./scripts/flatpak-dev run pnpm check
+```
+
+The `run` command uses the development home and its generated profile without starting the app.
+
 The launcher uses a transient systemd user service, so it does not need an open terminal. The service stops 30 seconds after the remote window disconnects, or after 120 seconds if no connection arrives. The launcher builds directly into `.flatpak-dev` and does not install Mixamp.
 
 Use the launcher to control or inspect the service manually:
