@@ -1,7 +1,7 @@
 import { RegistryProvider, useAtomValue } from "@effect/atom-react";
 import * as Gtk from "@gtkx/gi/gtk";
 import { AdwApplication, AdwApplicationWindow, AdwHeaderBar, AdwToolbarView } from "@gtkx/jsx/adw";
-import { GtkBox, GtkButton, GtkLabel } from "@gtkx/jsx/gtk";
+import { GtkBox, GtkLabel } from "@gtkx/jsx/gtk";
 import { quit } from "@gtkx/react";
 import { AsyncResult } from "effect/unstable/reactivity";
 
