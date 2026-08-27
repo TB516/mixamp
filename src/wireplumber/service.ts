@@ -1,6 +1,5 @@
-import { Context, Effect, Layer, Scope, SubscriptionRef } from "effect";
+import { Context, Effect, Layer, SubscriptionRef } from "effect";
 
-import { WirePlumberError } from "./errors.js";
 import { makeWirePlumberConnection } from "./resource.js";
 import {
   initialWirePlumberConnectionState,
@@ -8,22 +7,13 @@ import {
   type WirePlumberService,
 } from "./types.js";
 
-const makeWirePlumberService: Effect.Effect<WirePlumberService, WirePlumberError, Scope.Scope> =
-  Effect.gen(function* () {
-    const state = yield* SubscriptionRef.make<WirePlumberConnectionState>(
-      initialWirePlumberConnectionState,
-    );
-
-    return yield* makeWirePlumberConnection(state);
-  }).pipe(
-    Effect.mapError(
-      (cause) =>
-        new WirePlumberError({
-          message: "Could not start Mixamp's WirePlumber client",
-          cause,
-        }),
-    ),
+const makeWirePlumberService = Effect.gen(function* () {
+  const state = yield* SubscriptionRef.make<WirePlumberConnectionState>(
+    initialWirePlumberConnectionState,
   );
+
+  return yield* makeWirePlumberConnection(state);
+});
 
 /** Effect context tag for the active WirePlumber service. */
 export const WirePlumber = Context.Service<WirePlumberService>(

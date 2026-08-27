@@ -4,12 +4,6 @@ type WirePlumberCause = {
   readonly cause: unknown;
 };
 
-/** Error exposed when the WirePlumber service cannot start. */
-export class WirePlumberError extends Data.TaggedError("WirePlumberError")<{
-  readonly message: string;
-  readonly cause?: unknown;
-}> {}
-
 /** Error raised when libwireplumber initialization fails. */
 export class WirePlumberInitializationError extends Data.TaggedError(
   "WirePlumberInitializationError",

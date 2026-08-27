@@ -13,4 +13,3 @@ export {
   type WirePlumberConnectionState,
   type WirePlumberService,
 } from "./types.js";
-export { WirePlumberError } from "./errors.js";

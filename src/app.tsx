@@ -19,7 +19,20 @@ const MainWindow = () => {
 
       return "WirePlumber disconnected";
     },
-    onError: (error) => `WirePlumber connection failed: ${error._tag}`,
+    onError: (error) => {
+      switch (error._tag) {
+        case "WirePlumberInitializationError":
+          return "WirePlumber could not initialize";
+        case "WirePlumberCoreCreationError":
+          return "Could not create the WirePlumber core";
+        case "WirePlumberSignalSetupError":
+          return "Could not monitor the WirePlumber connection";
+        case "WirePlumberConnectionError":
+          return "Could not connect to PipeWire";
+        case "NoSuchElementError":
+          return "The WirePlumber connection stream ended unexpectedly";
+      }
+    },
     onDefect: () => "WirePlumber failed unexpectedly",
   });
 
