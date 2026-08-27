@@ -6,9 +6,9 @@ import { describe, expect, it } from "vitest";
 import App from "../src/app.js";
 
 describe("App", () => {
-  it("renders the device refresh action", async () => {
+  it("renders the main window", async () => {
     await render(<App />, { container: rootElement });
-    const button = await screen.findByRole(Gtk.AccessibleRole.BUTTON, { name: "Refresh devices" });
-    expect(button).toBeDefined();
+    const window = await screen.findByRole(Gtk.AccessibleRole.WINDOW, { name: "Mixamp" });
+    expect(window).toBeDefined();
   });
 });
