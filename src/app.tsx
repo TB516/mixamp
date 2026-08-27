@@ -1,12 +1,28 @@
-import { RegistryProvider } from "@effect/atom-react";
+import { RegistryProvider, useAtomValue } from "@effect/atom-react";
 import * as Gtk from "@gtkx/gi/gtk";
 import { AdwApplication, AdwApplicationWindow, AdwHeaderBar, AdwToolbarView } from "@gtkx/jsx/adw";
 import { GtkBox, GtkButton, GtkLabel } from "@gtkx/jsx/gtk";
 import { quit } from "@gtkx/react";
+import { AsyncResult } from "effect/unstable/reactivity";
 
+import { wirePlumberConnection } from "./wireplumber/atoms/connection.js";
 import { WirePlumberConnectionMount } from "./wireplumber/connection-mount.js";
 
 const MainWindow = () => {
+  const connection = useAtomValue(wirePlumberConnection);
+  const connectionStatus = AsyncResult.matchWithError(connection, {
+    onInitial: () => "Connecting to WirePlumber…",
+    onSuccess: ({ value }) => {
+      if (value.connected) {
+        return "WirePlumber connected";
+      }
+
+      return "WirePlumber disconnected";
+    },
+    onError: (error) => `WirePlumber connection failed: ${error._tag}`,
+    onDefect: () => "WirePlumber failed unexpectedly",
+  });
+
   return (
     <AdwApplicationWindow
       title="Mixamp"
@@ -27,6 +43,7 @@ const MainWindow = () => {
         >
           <GtkLabel cssClasses={["title-1"]}>Mixamp</GtkLabel>
           <GtkLabel>PipeWire mixer controls will appear here.</GtkLabel>
+          <GtkLabel>{connectionStatus}</GtkLabel>
           <GtkButton label="Refresh devices" />
         </GtkBox>
       </AdwToolbarView>
