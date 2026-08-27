@@ -1,8 +1,9 @@
+import { RegistryProvider } from "@effect/atom-react";
 import * as Gtk from "@gtkx/gi/gtk";
 import { AdwApplication, AdwApplicationWindow, AdwHeaderBar, AdwToolbarView } from "@gtkx/jsx/adw";
 import { GtkBox, GtkButton, GtkLabel } from "@gtkx/jsx/gtk";
 import { quit } from "@gtkx/react";
-import { WirePlumberProvider } from "./wireplumber/provider.js";
+import { WirePlumberConnectionMount } from "./wireplumber/connection-mount.js";
 
 const MainWindow = () => {
   return (
@@ -35,9 +36,10 @@ const MainWindow = () => {
 /** Creates the GTK application and scopes WirePlumber to its window tree. */
 export const App = () => (
   <AdwApplication>
-    <WirePlumberProvider>
+    <RegistryProvider>
+      <WirePlumberConnectionMount />
       <MainWindow />
-    </WirePlumberProvider>
+    </RegistryProvider>
   </AdwApplication>
 );
 

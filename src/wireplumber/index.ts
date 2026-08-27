@@ -1,8 +1,11 @@
 /** Effect service and live layer for the WirePlumber connection. */
 export { WirePlumber, WirePlumberLive } from "./service.js";
 
-/** React provider and hook for consuming the connection from UI code. */
-export { WirePlumberProvider, useWirePlumber } from "./provider.js";
+/** Atom runtime and reactive state for the WirePlumber connection. */
+export { wirePlumberConnection, wirePlumberRuntime } from "./atoms/index.js";
+
+/** React mount that keeps the WirePlumber connection active. */
+export { WirePlumberConnectionMount } from "./connection-mount.js";
 
 /** Connection state, service, and error types. */
 export {

@@ -39,8 +39,3 @@ export class WirePlumberSignalCleanupError extends Data.TaggedError(
 export class WirePlumberDisconnectionError extends Data.TaggedError(
   "WirePlumberDisconnectionError",
 )<WirePlumberCause> {}
-
-/** Error raised when the React hook is used without its provider. */
-export class WirePlumberContextError extends Data.TaggedError("WirePlumberContextError")<{
-  readonly message: string;
-}> {}
