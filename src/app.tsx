@@ -3,6 +3,7 @@ import * as Gtk from "@gtkx/gi/gtk";
 import { AdwApplication, AdwApplicationWindow, AdwHeaderBar, AdwToolbarView } from "@gtkx/jsx/adw";
 import { GtkBox, GtkButton, GtkLabel } from "@gtkx/jsx/gtk";
 import { quit } from "@gtkx/react";
+
 import { WirePlumberConnectionMount } from "./wireplumber/connection-mount.js";
 
 const MainWindow = () => {

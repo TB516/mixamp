@@ -1,5 +1,6 @@
 import * as Wp from "@gtkx/gi/wp";
 import { Effect, Scope, SubscriptionRef } from "effect";
+
 import {
   WirePlumberConnectionError,
   WirePlumberCoreCreationError,

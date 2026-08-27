@@ -2,6 +2,7 @@ import * as Gtk from "@gtkx/gi/gtk";
 import { rootElement } from "@gtkx/react";
 import { render, screen } from "@gtkx/testing";
 import { describe, expect, it } from "vitest";
+
 import App from "../src/app.js";
 
 describe("App", () => {
