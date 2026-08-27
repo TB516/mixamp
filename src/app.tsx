@@ -41,10 +41,7 @@ const MainWindow = () => {
           valign={Gtk.Align.CENTER}
           halign={Gtk.Align.CENTER}
         >
-          <GtkLabel cssClasses={["title-1"]}>Mixamp</GtkLabel>
-          <GtkLabel>PipeWire mixer controls will appear here.</GtkLabel>
-          <GtkLabel>{connectionStatus}</GtkLabel>
-          <GtkButton label="Refresh devices" />
+          <GtkLabel cssClasses={["title-1"]}>{connectionStatus}</GtkLabel>
         </GtkBox>
       </AdwToolbarView>
     </AdwApplicationWindow>
