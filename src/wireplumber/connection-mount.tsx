@@ -1,9 +1,9 @@
 import { useAtomMount } from "@effect/atom-react";
 
-import { wirePlumberConnection } from "./atoms/connection.js";
+import { wirePlumberState } from "./atoms/state.js";
 
 /** Keeps the WirePlumber connection active for the surrounding application. */
 export const WirePlumberConnectionMount = () => {
-  useAtomMount(wirePlumberConnection);
+  useAtomMount(wirePlumberState);
   return null;
 };

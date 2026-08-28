@@ -5,12 +5,11 @@ import { GtkBox, GtkLabel } from "@gtkx/jsx/gtk";
 import { quit } from "@gtkx/react";
 import { AsyncResult } from "effect/unstable/reactivity";
 
-import { wirePlumberConnection } from "./wireplumber/atoms/connection.js";
-import { WirePlumberConnectionMount } from "./wireplumber/connection-mount.js";
+import { wirePlumberState, WirePlumberConnectionMount } from "./wireplumber/index.js";
 
 const MainWindow = () => {
-  const connection = useAtomValue(wirePlumberConnection);
-  const connectionStatus = AsyncResult.matchWithError(connection, {
+  const wirePlumber = useAtomValue(wirePlumberState);
+  const connectionStatus = AsyncResult.matchWithError(wirePlumber, {
     onInitial: () => "Connecting to WirePlumber…",
     onSuccess: ({ value }) => {
       if (value.connected) {
@@ -29,6 +28,8 @@ const MainWindow = () => {
           return "Could not monitor the WirePlumber connection";
         case "WirePlumberConnectionError":
           return "Could not connect to PipeWire";
+        case "WirePlumberVirtualSinkError":
+          return "Could not create the game and voice audio outputs";
         case "NoSuchElementError":
           return "The WirePlumber connection stream ended unexpectedly";
       }

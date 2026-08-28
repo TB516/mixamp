@@ -8,8 +8,10 @@ import {
   WirePlumberInitializationError,
   WirePlumberSignalCleanupError,
   WirePlumberSignalSetupError,
+  WirePlumberVirtualSinkError,
 } from "./errors.js";
-import type { WirePlumberConnectionState, WirePlumberService } from "./types.js";
+import { makeVirtualSinks } from "./sinks/virtual-sinks.js";
+import type { WirePlumberService, WirePlumberState } from "./types.js";
 
 const initializeWirePlumber: Effect.Effect<void, WirePlumberInitializationError> = Effect.try({
   try: () => Wp.init(Wp.InitFlags.PIPEWIRE | Wp.InitFlags.SPA_TYPES),
@@ -69,10 +71,7 @@ const acquireCoreSignal = (
       }).pipe(Effect.orDie),
   );
 
-const releaseCore = (
-  core: Wp.Core,
-  state: SubscriptionRef.SubscriptionRef<WirePlumberConnectionState>,
-) =>
+const releaseCore = (core: Wp.Core, state: SubscriptionRef.SubscriptionRef<WirePlumberState>) =>
   Effect.try({
     try: () => {
       if (core.isConnected()) {
@@ -80,7 +79,10 @@ const releaseCore = (
       }
     },
     catch: (cause) => new WirePlumberDisconnectionError({ cause }),
-  }).pipe(Effect.ensuring(SubscriptionRef.set(state, { connected: false })), Effect.orDie);
+  }).pipe(
+    Effect.ensuring(SubscriptionRef.update(state, (current) => ({ ...current, connected: false }))),
+    Effect.orDie,
+  );
 
 /**
  * Creates and connects the WirePlumber core.
@@ -88,13 +90,14 @@ const releaseCore = (
  * The returned Effect owns the core and its signal handlers until its scope closes.
  */
 export const makeWirePlumberConnection = (
-  state: SubscriptionRef.SubscriptionRef<WirePlumberConnectionState>,
+  state: SubscriptionRef.SubscriptionRef<WirePlumberState>,
 ): Effect.Effect<
   WirePlumberService,
   | WirePlumberInitializationError
   | WirePlumberCoreCreationError
   | WirePlumberSignalSetupError
-  | WirePlumberConnectionError,
+  | WirePlumberConnectionError
+  | WirePlumberVirtualSinkError,
   Scope.Scope
 > =>
   Effect.gen(function* () {
@@ -102,17 +105,26 @@ export const makeWirePlumberConnection = (
     const core = yield* Effect.acquireRelease(makeCore, (core) => releaseCore(core, state));
 
     yield* acquireCoreSignal(core, "connected", () =>
-      Effect.runSyncWith(context)(SubscriptionRef.set(state, { connected: true })),
+      Effect.runSyncWith(context)(
+        SubscriptionRef.update(state, (current) => ({ ...current, connected: true })),
+      ),
     );
     yield* acquireCoreSignal(core, "disconnected", () =>
-      Effect.runSyncWith(context)(SubscriptionRef.set(state, { connected: false })),
+      Effect.runSyncWith(context)(
+        SubscriptionRef.update(state, (current) => ({ ...current, connected: false })),
+      ),
     );
 
     yield* connectCore(core);
-    yield* SubscriptionRef.set(state, { connected: core.isConnected() });
+    yield* SubscriptionRef.update(state, (current) => ({
+      ...current,
+      connected: core.isConnected(),
+    }));
+    const virtualSinks = yield* makeVirtualSinks(core);
 
     return {
       core,
       state,
+      virtualSinks,
     };
   });

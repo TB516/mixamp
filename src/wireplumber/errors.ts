@@ -24,6 +24,11 @@ export class WirePlumberConnectionError extends Data.TaggedError(
   "WirePlumberConnectionError",
 )<WirePlumberCause> {}
 
+/** Error raised when Mixamp's virtual audio sinks cannot be created. */
+export class WirePlumberVirtualSinkError extends Data.TaggedError(
+  "WirePlumberVirtualSinkError",
+)<WirePlumberCause> {}
+
 /** Error raised while removing the core's connection signal handlers. */
 export class WirePlumberSignalCleanupError extends Data.TaggedError(
   "WirePlumberSignalCleanupError",

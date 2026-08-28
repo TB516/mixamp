@@ -2,15 +2,13 @@ import { Context, Effect, Layer, SubscriptionRef } from "effect";
 
 import { makeWirePlumberConnection } from "./resource.js";
 import {
-  initialWirePlumberConnectionState,
-  type WirePlumberConnectionState,
+  initialWirePlumberState,
+  type WirePlumberState,
   type WirePlumberService,
 } from "./types.js";
 
 const makeWirePlumberService = Effect.gen(function* () {
-  const state = yield* SubscriptionRef.make<WirePlumberConnectionState>(
-    initialWirePlumberConnectionState,
-  );
+  const state = yield* SubscriptionRef.make<WirePlumberState>(initialWirePlumberState);
 
   return yield* makeWirePlumberConnection(state);
 });
