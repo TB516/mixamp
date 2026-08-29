@@ -25,3 +25,4 @@ modules:
   - modules/libinput.yml
   - modules/weston.yml
   - modules/pnpm.yml
+  - modules/dev-environment.yml

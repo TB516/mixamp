@@ -9,7 +9,7 @@ The host needs:
 - VS Code with Remote - SSH
 - Flatpak and flatpak-builder
 - A systemd user session
-- `ssh`, `ssh-keygen`, and `ss`
+- `flock`, `ssh`, `ssh-keygen`, and `ss`
 
 Start the development environment from a host terminal:
 
@@ -48,7 +48,13 @@ To run a one-off command in the development Flatpak from the host, use:
 ./scripts/flatpak-dev run pnpm check
 ```
 
-The `run` command uses the development home and its generated profile without starting the app.
+The `run` command updates the development image, then uses the persistent development home without starting SSH. To update the image without running a command or starting SSH, use:
+
+```sh
+./scripts/flatpak-dev build
+```
+
+Flatpak Builder reuses its module cache, so it only rebuilds modules affected by manifest or source changes. The manifest installs the shared shell configuration from `flatpak/.profile`. Login shells, interactive Bash shells, one-off commands, and VS Code all use that profile.
 
 The launcher uses a transient systemd user service, so it does not need an open terminal. The service stops 30 seconds after the remote window disconnects, or after 120 seconds if no connection arrives. The launcher builds directly into `.flatpak-dev` and does not install Mixamp.
 
@@ -56,10 +62,13 @@ Use the launcher to control or inspect the service manually:
 
 ```sh
 ./scripts/flatpak-dev start
+./scripts/flatpak-dev build
 ./scripts/flatpak-dev stop
 ./scripts/flatpak-dev status
 ./scripts/flatpak-dev logs
 ```
+
+`start`, `build`, and `run` lock the development image so two launcher commands cannot change or use it at the same time. Stop the service before running `build` or `run`, since the service uses the same image.
 
 If port `22222` is occupied, choose another one when starting the launcher:
 
