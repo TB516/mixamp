@@ -1,5 +1,5 @@
 import * as Wp from "@gtkx/gi/wp";
-import { Effect } from "effect";
+import { Effect, Scope } from "effect";
 
 import { WirePlumberVirtualSinkError } from "../errors.js";
 import { sinkDefinitions } from "./definitions.js";
@@ -42,6 +42,14 @@ const loadVirtualSink = (
     catch: (cause) => new WirePlumberVirtualSinkError({ cause }),
   });
 
+const acquireVirtualSink = (
+  core: Wp.Core,
+  definition: (typeof sinkDefinitions)[keyof typeof sinkDefinitions],
+) =>
+  Effect.acquireRelease(loadVirtualSink(core, definition), (module) =>
+    Effect.sync(() => module.unload()),
+  );
+
 /**
  * Creates Mixamp's virtual sinks.
  *
@@ -50,10 +58,10 @@ const loadVirtualSink = (
  */
 export const makeVirtualSinks = (
   core: Wp.Core,
-): Effect.Effect<VirtualSinks, WirePlumberVirtualSinkError> =>
+): Effect.Effect<VirtualSinks, WirePlumberVirtualSinkError, Scope.Scope> =>
   Effect.gen(function* () {
-    const game = yield* loadVirtualSink(core, sinkDefinitions.game);
-    const voice = yield* loadVirtualSink(core, sinkDefinitions.voice);
+    const game = yield* acquireVirtualSink(core, sinkDefinitions.game);
+    const voice = yield* acquireVirtualSink(core, sinkDefinitions.voice);
 
     return [game, voice];
   });
