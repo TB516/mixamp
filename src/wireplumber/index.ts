@@ -1,5 +1,5 @@
-/** Reactive state exposed to the UI. */
-export { wirePlumberState } from "./atoms/index.js";
+/** Reactive WirePlumber state and controls exposed to the UI. */
+export { setWirePlumberCrossfade, wirePlumberState } from "./atoms/index.js";
 
 /** React mount that keeps the WirePlumber connection active. */
 export { WirePlumberConnectionMount } from "./connection-mount.js";
