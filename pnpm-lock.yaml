@@ -12,20 +12,20 @@ importers:
         specifier: 4.0.0-rc.109
         version: 4.0.0-rc.109(effect@4.0.0-rc.109)(react@19.2.8)(scheduler@0.27.0)
       '@gtkx/cairo':
-        specifier: ^1.5.0
-        version: 1.5.0
+        specifier: ^1.6.0
+        version: 1.6.0
       '@gtkx/css':
-        specifier: ^1.5.0
-        version: 1.5.0
+        specifier: ^1.6.0
+        version: 1.6.0
       '@gtkx/native':
-        specifier: ^1.5.0
-        version: 1.5.0
+        specifier: ^1.6.0
+        version: 1.6.0
       '@gtkx/react':
-        specifier: ^1.5.0
-        version: 1.5.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
+        specifier: ^1.6.0
+        version: 1.6.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
       '@gtkx/runtime':
-        specifier: ^1.5.0
-        version: 1.5.0
+        specifier: ^1.6.0
+        version: 1.6.0
       effect:
         specifier: 4.0.0-rc.109
         version: 4.0.0-rc.109
@@ -37,17 +37,17 @@ importers:
         specifier: 0.36.5
         version: 0.36.5
       '@gtkx/cli':
-        specifier: ^1.5.0
-        version: 1.5.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(typescript@7.0.2)(vitest@4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)))
+        specifier: ^1.6.0
+        version: 1.6.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(typescript@7.0.2)(vitest@4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)))
       '@gtkx/config':
-        specifier: ^1.5.0
-        version: 1.5.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
+        specifier: ^1.6.0
+        version: 1.6.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
       '@gtkx/testing':
-        specifier: ^1.5.0
-        version: 1.5.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
+        specifier: ^1.6.0
+        version: 1.6.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
       '@gtkx/vitest':
-        specifier: ^1.5.0
-        version: 1.5.0(@types/node@26.2.0)(jiti@2.7.0)(vitest@4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)))(yaml@2.9.0)
+        specifier: ^1.6.0
+        version: 1.6.0(@types/node@26.2.0)(jiti@2.7.0)(vitest@4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)))(yaml@2.9.0)
       '@types/node':
         specifier: ^26.2.0
         version: 26.2.0
@@ -329,76 +329,76 @@ packages:
     resolution: {integrity: sha512-+CNAzxglkrpNf/kKywqQfk74QjtceuOE7Qm+AF8miRvPF/wmmK5+OJOgVh3AVTT3RP2mH3+FOaxlE5v72owk0A==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
 
-  '@gtkx/cairo@1.5.0':
-    resolution: {integrity: sha512-AZKluARSHCOgLZJQq2JNnm9IUhiGbfKI0DrwcUu6lstGwc7ZM1tUVYqukTgRc8vSugpBAcrwIkUWI7eAPn+Khg==}
+  '@gtkx/cairo@1.6.0':
+    resolution: {integrity: sha512-ZvxZwDKEzR6QStsOJnbHLckDDIJm7zYuqGoONK7+6+vJxvidKZ/W8Zmv5ESEXJiAgABE5hW9fL9C0rAS477L2Q==}
     engines: {node: '>=24'}
 
-  '@gtkx/cli@1.5.0':
-    resolution: {integrity: sha512-/euUunf+ImF1+h6+nji2tRJaz7nYEn1c0fw4ms1XnKtkeIHqJEC4yR67KFbLfNJTTvddneoowB3JRSNb4Yas+Q==}
+  '@gtkx/cli@1.6.0':
+    resolution: {integrity: sha512-67arRyfiDXtp6UPYcJWtPeWMA7SKqZBHMfev7vMCO0NrO3UNvknzqPWUidLHIYAx69RkQP2IKLPSynQjpbt/Gg==}
     engines: {node: '>=24'}
     hasBin: true
     peerDependencies:
       react: ^19
 
-  '@gtkx/codegen@1.5.0':
-    resolution: {integrity: sha512-sIEmwXg/iRIT9jRNSAb6YDaNwSqmCNb/vSq3UIQUianTHBUEbOmixHV/ERw0r6PxC19jHqP/q7mAlAWKK5xsVg==}
+  '@gtkx/codegen@1.6.0':
+    resolution: {integrity: sha512-XvqW7YYyPbqAGCjBEREwdF5OjAxNG/I2rnhr/7aVWUDR5/mdzgamwNm83iIUg1CUqci0ioZcojomrnZW45jElQ==}
     engines: {node: '>=24'}
 
-  '@gtkx/config@1.5.0':
-    resolution: {integrity: sha512-oFj/ZrxwCFxWICxdHn5LF6zpNBqWw2Fl7fkFcyY26pS5ybPC0Z7QDeOhZaefMZI3v7alPZh+x3Y3CpudNN7Txg==}
+  '@gtkx/config@1.6.0':
+    resolution: {integrity: sha512-NIU4+rZpTXVqJkFnOnQVcj7Vtha/yp32MjOVHY8rZqyStJlCWBgjf6VtWsSDStisJGbH4iKbWaYlKBtZeoWUWg==}
     engines: {node: '>=24'}
 
-  '@gtkx/css@1.5.0':
-    resolution: {integrity: sha512-WTuhVb+Hxykz1SJ+HpEjUkPgl32wybcJUqyAB7f8EOah0cyU5PWIWxR+2LLkSEZQmIYl6WzZnGOHkv1wktxWuw==}
+  '@gtkx/css@1.6.0':
+    resolution: {integrity: sha512-DDiiJEmxsFSaJ/eqyaNRgyjxGnxyPPb8D4BaGagS5wjfUmkC6zorYaef1VGpk+pkv4CsH+/IUJWnijpTN3cNIg==}
     engines: {node: '>=24'}
 
-  '@gtkx/mcp@1.5.0':
-    resolution: {integrity: sha512-7dAH3EZwauybIpTeKVnPt7IEtdRMoV15lVEzpuZcRCajlPrZEnT5f6aAWWbTBB8elumv1EKqlfYkDX/ocZ7V6Q==}
+  '@gtkx/mcp@1.6.0':
+    resolution: {integrity: sha512-owviwo2i5hclB6qIP4vSOcnbl8tIYZTINZl5fWYdHd3TYz9IaT3HczVJIveJrgQ0dsKOhMpxkkdQHT9tNKXJEg==}
     engines: {node: '>=24'}
     hasBin: true
 
-  '@gtkx/native-linux-arm64-gnu@1.5.0':
-    resolution: {integrity: sha512-S/UAtivcIKCGECVDol43zV67TdFHt9tNchdI/hFqnC4D0hPkQPrAtdUfVLjLNAg2zK0b2iPosZrAPGaREU+oUg==}
+  '@gtkx/native-linux-arm64-gnu@1.6.0':
+    resolution: {integrity: sha512-NIWmTN5dMXAxZENN22ZAHv3RcS5wtcmyj7KL8VLjuK6WnRRRg1S3KGbJqTX4spWJShWVxJqWd36AKjNKrycGoQ==}
     engines: {node: '>=24'}
     cpu: [arm64]
     os: [linux]
     libc: [glibc]
 
-  '@gtkx/native-linux-x64-gnu@1.5.0':
-    resolution: {integrity: sha512-4Y/XJzQXKQAEL3T2le3xBKm7sT/C0rp952OlIULzHFOck5/HyFixgR6YjtKuoSLoLGKJv5YlbnGSYrjace/zfg==}
+  '@gtkx/native-linux-x64-gnu@1.6.0':
+    resolution: {integrity: sha512-H2ChSoT+AtrQ5hHij1UgDFetWqg704q0Hh/Y8qwrOopaLQW5CFMmPRzMZan97sKdPxk6Zpkj6HSUk2O/2tmZjQ==}
     engines: {node: '>=24'}
     cpu: [x64]
     os: [linux]
     libc: [glibc]
 
-  '@gtkx/native@1.5.0':
-    resolution: {integrity: sha512-t22EQAlKngUsnPasJOLj5e7NzEztuBTUGMygSosPlJS+4v6bogHR6L7efCfHQY98rLgJd+mVvaDZd/oB265jKw==}
+  '@gtkx/native@1.6.0':
+    resolution: {integrity: sha512-pq97xsRNt8X5tQcCvqc++56lijruveKcBdDkbkIEHg6jXDupYF73iYLUEEgGXW/jq2mgWeIhKKlPSY2fHQvquQ==}
     engines: {node: '>=24'}
 
-  '@gtkx/react@1.5.0':
-    resolution: {integrity: sha512-dG55Cb4Nz7X59NStztxDixnSl0vHtkG2Y2PaHRfbohngchf5mfYp7IMvbj2SvSihThJueH+/W29rxptZvx573w==}
-    engines: {node: '>=24'}
-    peerDependencies:
-      '@types/react': ^19.2
-      react: ^19.2
-
-  '@gtkx/runtime@1.5.0':
-    resolution: {integrity: sha512-AFLya5tb2PQWheT42Y0IZEzV+c5bHqr9973nwXwlMZnYZB/PfJAe9A/3mHgGEyZKum3f9ky9KiCLL7qKJPk/TA==}
-    engines: {node: '>=24'}
-
-  '@gtkx/testing@1.5.0':
-    resolution: {integrity: sha512-UmsO2uO03ybjMNdR2Goobuuhfd4Hss1bQfIUN+A9E1mG7jRzjxlhvKl+kMvOg78QRXpRnXNDMsjr+hcNEEpzKA==}
+  '@gtkx/react@1.6.0':
+    resolution: {integrity: sha512-eM0jvE1+ioAX/ie97MrJMAn7Z0x75NajrjtZA/J2b5adZpBFbaFHXDZHPwSguc6raiGFXNery3ZUtYqDHy/gfw==}
     engines: {node: '>=24'}
     peerDependencies:
       '@types/react': ^19.2
       react: ^19.2
 
-  '@gtkx/utils@1.5.0':
-    resolution: {integrity: sha512-beyS+dO9POITYE8kAm2//4OfJZ8qYRbQskcbQhv27PgQ01VuRhFH8UM7uxdvLmfjYf8wi5on1p4/DieRRwmJgw==}
+  '@gtkx/runtime@1.6.0':
+    resolution: {integrity: sha512-jpzPSGyaAypyckrmrrswo+HPmjFSv6TZgLVyM17Z3vBsqFInnPKdsDk3/cJInQ86PoFeYU4zPvneQwLnTKRzDw==}
     engines: {node: '>=24'}
 
-  '@gtkx/vitest@1.5.0':
-    resolution: {integrity: sha512-BSDa+qnI9lVnBmfg4ypIRUTUGsp+QlZVTyIabMl+D9pMNP3Bebt5/Ah6COCg729/YGyNo0e4I9lPOKbbxTE4tQ==}
+  '@gtkx/testing@1.6.0':
+    resolution: {integrity: sha512-AEEIUVcT6I2KelnH1zh3yXfm1fJEylgA41x1TYL5Lk9FdQUVJEU23rp58v7dwCNl1NqpSnVCoyDeJpyl1ufX0w==}
+    engines: {node: '>=24'}
+    peerDependencies:
+      '@types/react': ^19.2
+      react: ^19.2
+
+  '@gtkx/utils@1.6.0':
+    resolution: {integrity: sha512-l9dkx+amZe/7HwyQC/ZJI5Rtg28rgJCmWL2yPv36gvH7z2BiTMMDGDcvC4LBVZ+fSX6jn1G2ibnghGmdzcx19Q==}
+    engines: {node: '>=24'}
+
+  '@gtkx/vitest@1.6.0':
+    resolution: {integrity: sha512-a6bGjGtkmFa5QtiUEFGTBYX8HlejByv65vIV1sB7XuGtmJPsAdIbwTdQDS1DTaLWdiADAbo5cVOjKL0Kk61V6w==}
     engines: {node: '>=24'}
     peerDependencies:
       vitest: '>=4'
@@ -1427,8 +1427,8 @@ packages:
     resolution: {integrity: sha512-tJtZBBHA6vjIAaF6EnIaq6laBBP9aq/Y3ouVJjEfoHbRBcHBAHYcMh/w8LDrk2PvIMMq8gmopa5D4V8RmbrxGw==}
     engines: {node: '>= 0.10'}
 
-  create-gtkx@1.5.0:
-    resolution: {integrity: sha512-aQEYQ9eR/RGhAImKiSqPENGyWFhdZhW9zypTSXsrHmT5f50fqbjI/9/6xl4F5J6pLPIyoTp+UNWE6EvCEQtl8w==}
+  create-gtkx@1.6.0:
+    resolution: {integrity: sha512-r40jmZpdqLV/omYhgM9KIEMWGlVK1xyGRhyjlKZ2xxA66myukTjVB6kN+zsIOaHvewYtQagKsCPbxZr0vpkJXQ==}
     engines: {node: '>=24'}
     hasBin: true
 
@@ -2927,24 +2927,24 @@ snapshots:
       '@eslint/core': 1.2.1
       levn: 0.4.1
 
-  '@gtkx/cairo@1.5.0':
+  '@gtkx/cairo@1.6.0':
     dependencies:
-      '@gtkx/runtime': 1.5.0
+      '@gtkx/runtime': 1.6.0
 
-  '@gtkx/cli@1.5.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(typescript@7.0.2)(vitest@4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)))':
+  '@gtkx/cli@1.6.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(typescript@7.0.2)(vitest@4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)))':
     dependencies:
       '@babel/core': 8.0.1
       '@babel/preset-typescript': 8.0.1(@babel/core@8.0.1)
-      '@gtkx/codegen': 1.5.0(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
-      '@gtkx/config': 1.5.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
-      '@gtkx/mcp': 1.5.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
-      '@gtkx/runtime': 1.5.0
-      '@gtkx/utils': 1.5.0
-      '@gtkx/vitest': 1.5.0(@types/node@26.2.0)(jiti@2.7.0)(vitest@4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)))(yaml@2.9.0)
+      '@gtkx/codegen': 1.6.0(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
+      '@gtkx/config': 1.6.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
+      '@gtkx/mcp': 1.6.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
+      '@gtkx/runtime': 1.6.0
+      '@gtkx/utils': 1.6.0
+      '@gtkx/vitest': 1.6.0(@types/node@26.2.0)(jiti@2.7.0)(vitest@4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)))(yaml@2.9.0)
       '@swc/core': 1.16.1
       babel-plugin-react-compiler: 1.0.0
       citty: 0.2.2
-      create-gtkx: 1.5.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
+      create-gtkx: 1.6.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
       fast-xml-parser: 5.11.0
       i18next-cli: 1.71.3(@types/node@26.2.0)(typescript@7.0.2)
       react: 19.2.8
@@ -2973,11 +2973,11 @@ snapshots:
       - typescript
       - vitest
 
-  '@gtkx/codegen@1.5.0(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)':
+  '@gtkx/codegen@1.6.0(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)':
     dependencies:
-      '@gtkx/cairo': 1.5.0
-      '@gtkx/react': 1.5.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
-      '@gtkx/utils': 1.5.0
+      '@gtkx/cairo': 1.6.0
+      '@gtkx/react': 1.6.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
+      '@gtkx/utils': 1.6.0
       '@types/node': 26.2.0
       fast-xml-parser: 5.11.0
       fast-xml-validator: 1.4.2
@@ -2998,9 +2998,9 @@ snapshots:
       - tsx
       - yaml
 
-  '@gtkx/config@1.5.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)':
+  '@gtkx/config@1.6.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)':
     dependencies:
-      '@gtkx/utils': 1.5.0
+      '@gtkx/utils': 1.6.0
       c12: 3.3.4
       defu: 6.1.7
       vite: 8.2.2(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
@@ -3020,17 +3020,17 @@ snapshots:
       - tsx
       - yaml
 
-  '@gtkx/css@1.5.0':
+  '@gtkx/css@1.6.0':
     dependencies:
       '@emotion/serialize': 1.3.3
-      '@gtkx/utils': 1.5.0
+      '@gtkx/utils': 1.6.0
       stylis: 4.4.0
 
-  '@gtkx/mcp@1.5.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)':
+  '@gtkx/mcp@1.6.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)':
     dependencies:
-      '@gtkx/codegen': 1.5.0(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
-      '@gtkx/config': 1.5.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
-      '@gtkx/utils': 1.5.0
+      '@gtkx/codegen': 1.6.0(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
+      '@gtkx/config': 1.6.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
+      '@gtkx/utils': 1.6.0
       '@modelcontextprotocol/sdk': 1.30.0(zod@4.4.3)
       zod: 4.4.3
     transitivePeerDependencies:
@@ -3052,23 +3052,23 @@ snapshots:
       - tsx
       - yaml
 
-  '@gtkx/native-linux-arm64-gnu@1.5.0':
+  '@gtkx/native-linux-arm64-gnu@1.6.0':
     optional: true
 
-  '@gtkx/native-linux-x64-gnu@1.5.0':
+  '@gtkx/native-linux-x64-gnu@1.6.0':
     optional: true
 
-  '@gtkx/native@1.5.0':
+  '@gtkx/native@1.6.0':
     optionalDependencies:
-      '@gtkx/native-linux-arm64-gnu': 1.5.0
-      '@gtkx/native-linux-x64-gnu': 1.5.0
+      '@gtkx/native-linux-arm64-gnu': 1.6.0
+      '@gtkx/native-linux-x64-gnu': 1.6.0
 
-  '@gtkx/react@1.5.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)':
+  '@gtkx/react@1.6.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)':
     dependencies:
-      '@gtkx/config': 1.5.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
-      '@gtkx/css': 1.5.0
-      '@gtkx/runtime': 1.5.0
-      '@gtkx/utils': 1.5.0
+      '@gtkx/config': 1.6.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
+      '@gtkx/css': 1.6.0
+      '@gtkx/runtime': 1.6.0
+      '@gtkx/utils': 1.6.0
       '@types/react': 19.2.18
       react: 19.2.8
       react-reconciler: 0.33.0(react@19.2.8)
@@ -3087,16 +3087,16 @@ snapshots:
       - tsx
       - yaml
 
-  '@gtkx/runtime@1.5.0':
+  '@gtkx/runtime@1.6.0':
     dependencies:
-      '@gtkx/native': 1.5.0
-      '@gtkx/utils': 1.5.0
+      '@gtkx/native': 1.6.0
+      '@gtkx/utils': 1.6.0
 
-  '@gtkx/testing@1.5.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)':
+  '@gtkx/testing@1.6.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)':
     dependencies:
-      '@gtkx/react': 1.5.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
-      '@gtkx/runtime': 1.5.0
-      '@gtkx/utils': 1.5.0
+      '@gtkx/react': 1.6.0(@types/node@26.2.0)(@types/react@19.2.18)(jiti@2.7.0)(react@19.2.8)(yaml@2.9.0)
+      '@gtkx/runtime': 1.6.0
+      '@gtkx/utils': 1.6.0
       '@types/react': 19.2.18
       '@vitest/expect': 4.1.11
       '@vitest/pretty-format': 4.1.11
@@ -3116,14 +3116,14 @@ snapshots:
       - tsx
       - yaml
 
-  '@gtkx/utils@1.5.0':
+  '@gtkx/utils@1.6.0':
     dependencies:
       picocolors: 1.1.1
 
-  '@gtkx/vitest@1.5.0(@types/node@26.2.0)(jiti@2.7.0)(vitest@4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)))(yaml@2.9.0)':
+  '@gtkx/vitest@1.6.0(@types/node@26.2.0)(jiti@2.7.0)(vitest@4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)))(yaml@2.9.0)':
     dependencies:
-      '@gtkx/config': 1.5.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
-      '@gtkx/utils': 1.5.0
+      '@gtkx/config': 1.6.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
+      '@gtkx/utils': 1.6.0
       '@homebridge/dbus-native': 0.7.9
       vitest: 4.1.11(@types/node@26.2.0)(vite@8.2.2(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0))
     transitivePeerDependencies:
@@ -3868,11 +3868,11 @@ snapshots:
       object-assign: 4.1.1
       vary: 1.1.2
 
-  create-gtkx@1.5.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0):
+  create-gtkx@1.6.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0):
     dependencies:
       '@clack/prompts': 1.7.0
-      '@gtkx/config': 1.5.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
-      '@gtkx/utils': 1.5.0
+      '@gtkx/config': 1.6.0(@types/node@26.2.0)(jiti@2.7.0)(yaml@2.9.0)
+      '@gtkx/utils': 1.6.0
       citty: 0.2.2
       ejs: 6.0.1
       nypm: 0.6.9
