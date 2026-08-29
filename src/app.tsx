@@ -5,7 +5,7 @@ import { GtkBox, GtkLabel } from "@gtkx/jsx/gtk";
 import { quit } from "@gtkx/react";
 import { AsyncResult } from "effect/unstable/reactivity";
 
-import { wirePlumberState, WirePlumberConnectionMount } from "./wireplumber/index.js";
+import { wirePlumberState, WirePlumberConnectionMount } from "./wireplumber/index.ts";
 
 /** Main application window showing the WirePlumber connection status. */
 const MainWindow = () => {

@@ -9,10 +9,10 @@ import {
   WirePlumberSignalCleanupError,
   WirePlumberSignalSetupError,
   WirePlumberVirtualSinkError,
-} from "./errors.js";
-import { setVirtualSinkCrossfade } from "./sinks/crossfade.js";
-import { makeVirtualSinks } from "./sinks/virtual-sinks.js";
-import type { WirePlumberService, WirePlumberState } from "./types.js";
+} from "./errors.ts";
+import { setVirtualSinkCrossfade } from "./sinks/crossfade.ts";
+import { makeVirtualSinks } from "./sinks/virtual-sinks.ts";
+import type { WirePlumberService, WirePlumberState } from "./types.ts";
 
 /** Initializes the WirePlumber library and its SPA types. */
 const initializeWirePlumber: Effect.Effect<void, WirePlumberInitializationError> = Effect.try({

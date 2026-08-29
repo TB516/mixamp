@@ -1,11 +1,11 @@
 import { Context, Effect, Layer, SubscriptionRef } from "effect";
 
-import { makeWirePlumberConnection } from "./resource.js";
+import { makeWirePlumberConnection } from "./resource.ts";
 import {
   initialWirePlumberState,
   type WirePlumberState,
   type WirePlumberService,
-} from "./types.js";
+} from "./types.ts";
 
 /** Creates the state and connection for the WirePlumber service. */
 const makeWirePlumberService = Effect.gen(function* () {

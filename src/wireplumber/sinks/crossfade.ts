@@ -1,8 +1,8 @@
 import * as Wp from "@gtkx/gi/wp";
 import { Effect } from "effect";
 
-import { WirePlumberCrossfadeError } from "../errors.js";
-import type { PlaybackNodes } from "./playback-nodes.js";
+import { WirePlumberCrossfadeError } from "../errors.ts";
+import type { PlaybackNodes } from "./playback-nodes.ts";
 
 /** Creates a WirePlumber volume parameter for the given gain. */
 const makeVolumePod = (gain: number) => {

@@ -2,8 +2,8 @@ import * as GLib from "@gtkx/gi/glib";
 import * as Wp from "@gtkx/gi/wp";
 import { Effect } from "effect";
 
-import { WirePlumberVirtualSinkError } from "../errors.js";
-import { sinkDefinitions } from "./definitions.js";
+import { WirePlumberVirtualSinkError } from "../errors.ts";
+import { sinkDefinitions } from "./definitions.ts";
 
 /** Game and Voice playback nodes routed to the default output. */
 export type PlaybackNodes = {

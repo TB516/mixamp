@@ -1,10 +1,10 @@
 import * as Wp from "@gtkx/gi/wp";
 import { Effect, Scope } from "effect";
 
-import { WirePlumberVirtualSinkError } from "../errors.js";
-import { sinkDefinitions } from "./definitions.js";
-import { makePlaybackNodeManager, waitForPlaybackNodes } from "./playback-nodes.js";
-import type { PlaybackNodes } from "./playback-nodes.js";
+import { WirePlumberVirtualSinkError } from "../errors.ts";
+import { sinkDefinitions } from "./definitions.ts";
+import { makePlaybackNodeManager, waitForPlaybackNodes } from "./playback-nodes.ts";
+import type { PlaybackNodes } from "./playback-nodes.ts";
 
 /** Loads a Game or Voice sink as a PipeWire loopback module. */
 const loadVirtualSink = (

@@ -1,8 +1,8 @@
 import type * as Wp from "@gtkx/gi/wp";
 import { Effect, SubscriptionRef } from "effect";
 
-import type { WirePlumberCrossfadeError } from "./errors.js";
-import { sinkDefinitions } from "./sinks/definitions.js";
+import type { WirePlumberCrossfadeError } from "./errors.ts";
+import { sinkDefinitions } from "./sinks/definitions.ts";
 
 /** State published by the WirePlumber service. */
 export type WirePlumberState = {
