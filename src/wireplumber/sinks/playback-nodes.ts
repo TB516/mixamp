@@ -5,11 +5,15 @@ import { Effect } from "effect";
 import { WirePlumberVirtualSinkError } from "../errors.js";
 import { sinkDefinitions } from "./definitions.js";
 
+/** Game and Voice playback nodes routed to the default output. */
 export type PlaybackNodes = {
+  /** Game playback node. */
   readonly game: Wp.Node;
+  /** Voice playback node. */
   readonly voice: Wp.Node;
 };
 
+/** Creates a WirePlumber interest for a virtual sink's playback node. */
 const makePlaybackNodeInterest = (nodeName: string) => {
   const interest = Wp.ObjectInterest.newType(Wp.Node);
   interest.addConstraint(
@@ -21,6 +25,7 @@ const makePlaybackNodeInterest = (nodeName: string) => {
   return interest;
 };
 
+/** Creates an object manager that tracks the Game and Voice playback nodes. */
 export const makePlaybackNodeManager = (
   core: Wp.Core,
 ): Effect.Effect<Wp.ObjectManager, WirePlumberVirtualSinkError> =>
@@ -39,12 +44,14 @@ export const makePlaybackNodeManager = (
     catch: (cause) => new WirePlumberVirtualSinkError({ cause }),
   });
 
+/** Looks up a virtual sink's playback node by name. */
 const lookupPlaybackNode = (objectManager: Wp.ObjectManager, nodeName: string) => {
   // lookupFull takes ownership of the interest, so each lookup needs a new one.
   const object = objectManager.lookupFull(makePlaybackNodeInterest(nodeName));
   return object instanceof Wp.Node ? object : null;
 };
 
+/** Waits for the Game and Voice playback nodes to become available. */
 export const waitForPlaybackNodes = (
   objectManager: Wp.ObjectManager,
 ): Effect.Effect<PlaybackNodes, WirePlumberVirtualSinkError> =>

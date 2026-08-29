@@ -4,6 +4,7 @@ import { Effect } from "effect";
 import { WirePlumberCrossfadeError } from "../errors.js";
 import type { PlaybackNodes } from "./playback-nodes.js";
 
+/** Creates a WirePlumber volume parameter for the given gain. */
 const makeVolumePod = (gain: number) => {
   const builder = Wp.SpaPodBuilder.newObject("Spa:Pod:Object:Param:Props", "Props");
   builder.addProperty("volume");
@@ -11,7 +12,7 @@ const makeVolumePod = (gain: number) => {
   return builder.end();
 };
 
-/** Applies a MixAmp-style Game/Voice balance and returns the clamped value. */
+/** Applies the Game/Voice balance and returns the clamped value. */
 export const setVirtualSinkCrossfade = (
   playbackNodes: PlaybackNodes,
   crossfade: number,

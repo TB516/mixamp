@@ -7,6 +7,7 @@ import { AsyncResult } from "effect/unstable/reactivity";
 
 import { wirePlumberState, WirePlumberConnectionMount } from "./wireplumber/index.js";
 
+/** Main application window showing the WirePlumber connection status. */
 const MainWindow = () => {
   const wirePlumber = useAtomValue(wirePlumberState);
   const connectionStatus = AsyncResult.matchWithError(wirePlumber, {

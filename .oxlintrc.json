@@ -1,5 +1,48 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "jsPlugins": [
+    {
+      "name": "jsdoc-js",
+      "specifier": "eslint-plugin-jsdoc"
+    }
+  ],
+  "rules": {
+    "jsdoc-js/require-jsdoc": [
+      "error",
+      {
+        // Rule reset
+        "require": {
+          "ArrowFunctionExpression": false,
+          "ClassDeclaration": false,
+          "ClassExpression": false,
+          "FunctionDeclaration": false,
+          "FunctionExpression": false,
+          "MethodDefinition": false
+        },
+        "contexts": [
+          // Top-level runtime declarations.
+          "Program > :matches(FunctionDeclaration, ClassDeclaration, VariableDeclaration)",
+          "Program > :matches(ExportNamedDeclaration, ExportDefaultDeclaration):has(> :matches(FunctionDeclaration, ClassDeclaration, VariableDeclaration))",
+
+          // Top-level TypeScript declarations.
+          "Program > :matches(TSInterfaceDeclaration, TSTypeAliasDeclaration, TSEnumDeclaration)",
+          "Program > ExportNamedDeclaration:has(> :matches(TSInterfaceDeclaration, TSTypeAliasDeclaration, TSEnumDeclaration))",
+
+          // Public class methods and properties.
+          ":matches(MethodDefinition, PropertyDefinition):not([accessibility='private']):not([accessibility='protected']):not([key.type='PrivateIdentifier'])",
+
+          // Interface members.
+          "TSInterfaceDeclaration :matches(TSPropertySignature, TSMethodSignature)",
+
+          // Object properties/methods inside type aliases, including nested shapes.
+          "TSTypeAliasDeclaration :matches(TSPropertySignature, TSMethodSignature)",
+
+          // Enum members.
+          "TSEnumMember"
+        ]
+      }
+    ]
+  },
   "overrides": [
     {
       "files": ["src/gtkx-env.d.ts"],

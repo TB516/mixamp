@@ -1,3 +1,4 @@
+/** Definitions for Mixamp's Game and Voice sinks. */
 export const sinkDefinitions = {
   game: {
     name: "Mixamp Game",

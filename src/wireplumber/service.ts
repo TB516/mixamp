@@ -7,6 +7,7 @@ import {
   type WirePlumberService,
 } from "./types.js";
 
+/** Creates the state and connection for the WirePlumber service. */
 const makeWirePlumberService = Effect.gen(function* () {
   const state = yield* SubscriptionRef.make<WirePlumberState>(initialWirePlumberState);
 

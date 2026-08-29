@@ -14,11 +14,13 @@ import { setVirtualSinkCrossfade } from "./sinks/crossfade.js";
 import { makeVirtualSinks } from "./sinks/virtual-sinks.js";
 import type { WirePlumberService, WirePlumberState } from "./types.js";
 
+/** Initializes the WirePlumber library and its SPA types. */
 const initializeWirePlumber: Effect.Effect<void, WirePlumberInitializationError> = Effect.try({
   try: () => Wp.init(Wp.InitFlags.PIPEWIRE | Wp.InitFlags.SPA_TYPES),
   catch: (cause) => new WirePlumberInitializationError({ cause }),
 });
 
+/** Creates a WirePlumber core configured for Mixamp. */
 const makeCore: Effect.Effect<
   Wp.Core,
   WirePlumberInitializationError | WirePlumberCoreCreationError
@@ -37,6 +39,7 @@ const makeCore: Effect.Effect<
   });
 });
 
+/** Connects a WirePlumber core to PipeWire. */
 const connectCore = (core: Wp.Core): Effect.Effect<void, WirePlumberConnectionError> =>
   Effect.try({
     try: () => {
@@ -55,6 +58,7 @@ const connectCore = (core: Wp.Core): Effect.Effect<void, WirePlumberConnectionEr
     },
   });
 
+/** Registers a scoped handler for a WirePlumber core signal. */
 const acquireCoreSignal = (
   core: Wp.Core,
   signal: "connected" | "disconnected",
@@ -72,6 +76,7 @@ const acquireCoreSignal = (
       }).pipe(Effect.orDie),
   );
 
+/** Disconnects the core and publishes its disconnected state. */
 const releaseCore = (core: Wp.Core, state: SubscriptionRef.SubscriptionRef<WirePlumberState>) =>
   Effect.try({
     try: () => {

@@ -1,6 +1,8 @@
 import { Data } from "effect";
 
+/** Properties shared by errors that preserve their original cause. */
 type WirePlumberCause = {
+  /** Original error or value caught from the failed operation. */
   readonly cause: unknown;
 };
 

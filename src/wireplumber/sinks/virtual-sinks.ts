@@ -6,6 +6,7 @@ import { sinkDefinitions } from "./definitions.js";
 import { makePlaybackNodeManager, waitForPlaybackNodes } from "./playback-nodes.js";
 import type { PlaybackNodes } from "./playback-nodes.js";
 
+/** Loads a Game or Voice sink as a PipeWire loopback module. */
 const loadVirtualSink = (
   core: Wp.Core,
   definition: (typeof sinkDefinitions)[keyof typeof sinkDefinitions],
