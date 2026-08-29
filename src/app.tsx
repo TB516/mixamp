@@ -72,5 +72,3 @@ export const App = () => (
     </RegistryProvider>
   </AdwApplication>
 );
-
-export default App;
