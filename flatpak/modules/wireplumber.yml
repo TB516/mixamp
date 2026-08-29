@@ -12,5 +12,5 @@ config-opts:
   - -Delogind=disabled
 sources:
   - type: archive
-    url: https://gitlab.freedesktop.org/pipewire/wireplumber/-/archive/0.5.15/wireplumber-0.5.15.tar.gz
-    sha256: baa121bc918df5fa0e0e70755bb1c99ffab0ab107225ecf99aa470e2c6ba5e7b
+    url: https://gitlab.freedesktop.org/pipewire/wireplumber/-/archive/0.5.16/wireplumber-0.5.16.tar.gz
+    sha256: 59f2f72129dc385e13aaac3820122c6927d783c9699811b56f13a74296993d3a
