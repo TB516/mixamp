@@ -1,8 +1,8 @@
 import type * as Wp from "@gtkx/gi/wp";
-import { SubscriptionRef } from "effect";
+import { Effect, SubscriptionRef } from "effect";
 
+import type { WirePlumberCrossfadeError } from "./errors.js";
 import { sinkDefinitions } from "./sinks/definitions.js";
-import type { VirtualSinks } from "./sinks/virtual-sinks.js";
 
 /** State published by the WirePlumber service. */
 export type WirePlumberState = {
@@ -33,6 +33,6 @@ export const initialWirePlumberState: WirePlumberState = {
 export type WirePlumberService = {
   readonly core: Wp.Core;
   readonly state: SubscriptionRef.SubscriptionRef<WirePlumberState>;
-  /** Module handles retained for the lifetime of the WirePlumber connection. */
-  readonly virtualSinks: VirtualSinks;
+  /** Applies the Game/Voice balance and returns the clamped crossfade value. */
+  readonly setCrossfade: (crossfade: number) => Effect.Effect<number, WirePlumberCrossfadeError>;
 };

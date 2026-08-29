@@ -3,8 +3,8 @@ import { Effect, Scope } from "effect";
 
 import { WirePlumberVirtualSinkError } from "../errors.js";
 import { sinkDefinitions } from "./definitions.js";
-
-export type VirtualSinks = readonly [Wp.ImplModule, Wp.ImplModule];
+import { makePlaybackNodeManager, waitForPlaybackNodes } from "./playback-nodes.js";
+import type { PlaybackNodes } from "./playback-nodes.js";
 
 const loadVirtualSink = (
   core: Wp.Core,
@@ -42,14 +42,6 @@ const loadVirtualSink = (
     catch: (cause) => new WirePlumberVirtualSinkError({ cause }),
   });
 
-const acquireVirtualSink = (
-  core: Wp.Core,
-  definition: (typeof sinkDefinitions)[keyof typeof sinkDefinitions],
-) =>
-  Effect.acquireRelease(loadVirtualSink(core, definition), (module) =>
-    Effect.sync(() => module.unload()),
-  );
-
 /**
  * Creates Mixamp's virtual sinks.
  *
@@ -58,10 +50,16 @@ const acquireVirtualSink = (
  */
 export const makeVirtualSinks = (
   core: Wp.Core,
-): Effect.Effect<VirtualSinks, WirePlumberVirtualSinkError, Scope.Scope> =>
+): Effect.Effect<PlaybackNodes, WirePlumberVirtualSinkError, Scope.Scope> =>
   Effect.gen(function* () {
-    const game = yield* acquireVirtualSink(core, sinkDefinitions.game);
-    const voice = yield* acquireVirtualSink(core, sinkDefinitions.voice);
+    const objectManager = yield* makePlaybackNodeManager(core);
 
-    return [game, voice];
+    yield* Effect.acquireRelease(loadVirtualSink(core, sinkDefinitions.game), (module) =>
+      Effect.sync(() => module.unload()),
+    );
+    yield* Effect.acquireRelease(loadVirtualSink(core, sinkDefinitions.voice), (module) =>
+      Effect.sync(() => module.unload()),
+    );
+
+    return yield* waitForPlaybackNodes(objectManager);
   });

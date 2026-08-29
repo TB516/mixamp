@@ -29,6 +29,11 @@ export class WirePlumberVirtualSinkError extends Data.TaggedError(
   "WirePlumberVirtualSinkError",
 )<WirePlumberCause> {}
 
+/** Error raised when the Game/Voice gain cannot be changed. */
+export class WirePlumberCrossfadeError extends Data.TaggedError(
+  "WirePlumberCrossfadeError",
+)<WirePlumberCause> {}
+
 /** Error raised while removing the core's connection signal handlers. */
 export class WirePlumberSignalCleanupError extends Data.TaggedError(
   "WirePlumberSignalCleanupError",

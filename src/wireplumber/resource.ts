@@ -10,6 +10,7 @@ import {
   WirePlumberSignalSetupError,
   WirePlumberVirtualSinkError,
 } from "./errors.js";
+import { setVirtualSinkCrossfade } from "./sinks/crossfade.js";
 import { makeVirtualSinks } from "./sinks/virtual-sinks.js";
 import type { WirePlumberService, WirePlumberState } from "./types.js";
 
@@ -120,11 +121,19 @@ export const makeWirePlumberConnection = (
       ...current,
       connected: core.isConnected(),
     }));
-    const virtualSinks = yield* makeVirtualSinks(core);
+    const playbackNodes = yield* makeVirtualSinks(core);
 
     return {
       core,
       state,
-      virtualSinks,
+      setCrossfade: (crossfade) =>
+        setVirtualSinkCrossfade(playbackNodes, crossfade).pipe(
+          Effect.tap((value) =>
+            SubscriptionRef.update(state, (current) => ({
+              ...current,
+              crossfade: value,
+            })),
+          ),
+        ),
     };
   });
