@@ -11,6 +11,8 @@ The host needs:
 - A systemd user session
 - `flock`, `ssh`, `ssh-keygen`, and `ss`
 
+Install the runtime, SDK, and SDK extensions declared by the development manifest before the first build. The launcher does not install or update Flatpak dependencies.
+
 Start the development environment from a host terminal:
 
 ```sh
@@ -48,13 +50,13 @@ To run a one-off command in the development Flatpak from the host, use:
 ./scripts/flatpak-dev run pnpm check
 ```
 
-The `run` command updates the development image, then uses the persistent development home without starting SSH. To update the image without running a command or starting SSH, use:
+When the SSH service is inactive, `run` rebuilds the development image using Flatpak Builder's module cache. When the service is active, it leaves the image and SSH session alone. Both paths run the command with `flatpak build` and the persistent development home. To update the image without running a command or starting SSH, use:
 
 ```sh
 ./scripts/flatpak-dev build
 ```
 
-Flatpak Builder reuses its module cache, so it only rebuilds modules affected by manifest or source changes. The manifest installs the shared shell configuration from `flatpak/.profile`. Login shells, interactive Bash shells, one-off commands, and VS Code all use that profile.
+Flatpak Builder reuses its module cache. Changes to development manifest modules, OpenSSH, SDK extensions, or files installed into `/app` rebuild the affected modules. Project source, package manifests, and the lockfile do not rebuild the development image because the development manifest does not declare them as sources. Install dependencies with pnpm inside the development Flatpak. The manifest installs the shared shell configuration from `flatpak/.profile`. Login shells, interactive Bash shells, one-off commands, and VS Code all use that profile.
 
 The launcher uses a transient systemd user service, so it does not need an open terminal. The service stops 30 seconds after the remote window disconnects, or after 120 seconds if no connection arrives. The launcher builds directly into `.flatpak-dev` and does not install Mixamp.
 
@@ -68,7 +70,7 @@ Use the launcher to control or inspect the service manually:
 ./scripts/flatpak-dev logs
 ```
 
-`start`, `build`, and `run` lock the development image so two launcher commands cannot change or use it at the same time. Stop the service before running `build` or `run`, since the service uses the same image.
+`start` holds the lock while rebuilding and launching the service, then releases it before waiting for SSH. `build` holds the lock while rebuilding. An inactive-service `run` holds the lock only while rebuilding, while an active-service `run` skips the rebuild. `build` still refuses to update `.flatpak-dev/build` while the service is active.
 
 If port `22222` is occupied, choose another one when starting the launcher:
 
