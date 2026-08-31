@@ -1,9 +1,8 @@
 import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
-import * as Gtk from "@gtkx/gi/gtk";
-import { GtkBox, GtkLabel, GtkSpinner } from "@gtkx/jsx/gtk";
 import { AsyncResult } from "effect/unstable/reactivity";
 
 import { BalanceControl } from "../components/balance-control.tsx";
+import { ConnectionLoadingPage } from "../components/connection-loading-page.tsx";
 import { ConnectionStatusPage } from "../components/connection-status-page.tsx";
 import { wirePlumberState } from "../wireplumber/index.ts";
 
@@ -13,20 +12,7 @@ export const MainScreen = () => {
   const wirePlumber = useAtomValue(wirePlumberState);
 
   return AsyncResult.matchWithError(wirePlumber, {
-    onInitial: () => (
-      <GtkBox
-        orientation={Gtk.Orientation.VERTICAL}
-        spacing={16}
-        halign={Gtk.Align.CENTER}
-        valign={Gtk.Align.CENTER}
-        hexpand
-        vexpand
-      >
-        <GtkSpinner spinning widthRequest={32} heightRequest={32} />
-        <GtkLabel cssClasses={["title-2"]}>Connecting to audio…</GtkLabel>
-        <GtkLabel cssClasses={["dim-label"]}>Creating the Game and Voice outputs</GtkLabel>
-      </GtkBox>
-    ),
+    onInitial: () => <ConnectionLoadingPage />,
     onSuccess: ({ value }) => {
       if (!value.connected) {
         return (
