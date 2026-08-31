@@ -1,14 +1,15 @@
-import { useAtomValue } from "@effect/atom-react";
+import { useAtomRefresh, useAtomValue } from "@effect/atom-react";
 import * as Gtk from "@gtkx/gi/gtk";
-import { AdwStatusPage } from "@gtkx/jsx/adw";
 import { GtkBox, GtkLabel, GtkSpinner } from "@gtkx/jsx/gtk";
 import { AsyncResult } from "effect/unstable/reactivity";
 
 import { BalanceControl } from "../components/balance-control.tsx";
+import { ConnectionStatusPage } from "../components/connection-status-page.tsx";
 import { wirePlumberState } from "../wireplumber/index.ts";
 
 /** Main screen backed by the current WirePlumber atom. */
 export const MainScreen = () => {
+  const reconnectWirePlumber = useAtomRefresh(wirePlumberState);
   const wirePlumber = useAtomValue(wirePlumberState);
 
   return AsyncResult.matchWithError(wirePlumber, {
@@ -29,12 +30,10 @@ export const MainScreen = () => {
     onSuccess: ({ value }) => {
       if (!value.connected) {
         return (
-          <AdwStatusPage
+          <ConnectionStatusPage
             iconName="audio-volume-muted-symbolic"
             title="PipeWire disconnected"
             description="Mixamp is waiting for the audio service. Reopen the app after PipeWire is running."
-            hexpand
-            vexpand
           />
         );
       }
@@ -42,6 +41,7 @@ export const MainScreen = () => {
       return <BalanceControl crossfade={value.crossfade} />;
     },
     onError: (error) => {
+      let canReconnect = false;
       let title = "The audio connection failed";
       let description = "Close and reopen Mixamp, then try again.";
 
@@ -59,10 +59,12 @@ export const MainScreen = () => {
           description = "Mixamp could not listen for WirePlumber connection changes.";
           break;
         case "WirePlumberConnectionError":
+          canReconnect = true;
           title = "Could not connect to PipeWire";
-          description = "Check that PipeWire is running, then close and reopen Mixamp.";
+          description = "Check that PipeWire is running, then reconnect.";
           break;
         case "WirePlumberVirtualSinkError":
+          canReconnect = true;
           title = "Could not create the Mixamp outputs";
           description = "The Game and Voice outputs could not be added to PipeWire.";
           break;
@@ -76,22 +78,19 @@ export const MainScreen = () => {
       }
 
       return (
-        <AdwStatusPage
+        <ConnectionStatusPage
           iconName="dialog-error-symbolic"
           title={title}
           description={description}
-          hexpand
-          vexpand
+          onReconnect={canReconnect ? reconnectWirePlumber : undefined}
         />
       );
     },
     onDefect: () => (
-      <AdwStatusPage
+      <ConnectionStatusPage
         iconName="dialog-error-symbolic"
         title="Mixamp failed unexpectedly"
         description="Close and reopen the app. If this keeps happening, check the application logs."
-        hexpand
-        vexpand
       />
     ),
   });
