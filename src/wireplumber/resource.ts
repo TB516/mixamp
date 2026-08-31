@@ -132,13 +132,16 @@ export const makeWirePlumberConnection = (
       core,
       state,
       setCrossfade: (crossfade) =>
-        setVirtualSinkCrossfade(playbackNodes, crossfade).pipe(
-          Effect.tap((value) =>
-            SubscriptionRef.update(state, (current) => ({
-              ...current,
-              crossfade: value,
-            })),
-          ),
-        ),
+        Effect.gen(function* () {
+          const { crossfade: previousCrossfade } = yield* SubscriptionRef.get(state);
+          const value = yield* setVirtualSinkCrossfade(playbackNodes, crossfade, previousCrossfade);
+
+          yield* SubscriptionRef.update(state, (current) => ({
+            ...current,
+            crossfade: value,
+          }));
+
+          return value;
+        }),
     };
   });
