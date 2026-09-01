@@ -3,6 +3,8 @@ import * as Gtk from "@gtkx/gi/gtk";
 import { GtkAdjustment, GtkBox, GtkLabel, GtkScale } from "@gtkx/jsx/gtk";
 import { useEffect, useMemo, useRef } from "react";
 
+import type { WirePlumberState } from "../wireplumber/index.ts";
+
 /** Crossfade range and output interval used by the slider. */
 const sliderSettings = {
   minValue: -1,
@@ -51,6 +53,8 @@ const balanceScaleClass = css({
 type BalanceSliderProps = {
   /** Current crossfade from -1 for Game to 1 for Voice. */
   readonly value: number;
+  /** Display names for the two outputs. */
+  readonly sinks: WirePlumberState["sinks"];
   /** Changes when an optimistic thumb position should be reset. */
   readonly resetToken: object | null;
   /** Applies a new crossfade chosen by the user. */
@@ -58,8 +62,10 @@ type BalanceSliderProps = {
 };
 
 /** Native Adwaita balance slider with output-level feedback. */
-export const BalanceSlider = ({ value, resetToken, onChange }: BalanceSliderProps) => {
+export const BalanceSlider = ({ value, sinks, resetToken, onChange }: BalanceSliderProps) => {
   const adjustmentRef = useRef<Gtk.Adjustment | null>(null);
+  const gameName = sinks.game.name;
+  const voiceName = sinks.voice.name;
   const gameLevel = Math.round((1 - value) * 50);
   const voiceLevel = 100 - gameLevel;
 
@@ -95,13 +101,13 @@ export const BalanceSlider = ({ value, resetToken, onChange }: BalanceSliderProp
       <GtkBox orientation={Gtk.Orientation.HORIZONTAL} spacing={16} hexpand>
         <GtkBox orientation={Gtk.Orientation.VERTICAL} spacing={2} hexpand>
           <GtkLabel xalign={0} cssClasses={["heading"]}>
-            Game
+            {gameName}
           </GtkLabel>
           <GtkLabel xalign={0} cssClasses={["title-2"]}>{`${gameLevel}%`}</GtkLabel>
         </GtkBox>
         <GtkBox orientation={Gtk.Orientation.VERTICAL} spacing={2} hexpand>
           <GtkLabel xalign={1} cssClasses={["heading"]}>
-            Voice
+            {voiceName}
           </GtkLabel>
           <GtkLabel xalign={1} cssClasses={["title-2"]}>{`${voiceLevel}%`}</GtkLabel>
         </GtkBox>
@@ -114,9 +120,9 @@ export const BalanceSlider = ({ value, resetToken, onChange }: BalanceSliderProp
         hasOrigin={false}
         hexpand
         cssClasses={[balanceScaleClass]}
-        accessibleLabel="Game and Voice balance"
-        accessibleDescription="Move left for Game and right for Voice"
-        tooltipText="Move between Game and Voice"
+        accessibleLabel={`${gameName} and ${voiceName} balance`}
+        accessibleDescription={`Move left for ${gameName} and right for ${voiceName}`}
+        tooltipText={`Move between ${gameName} and ${voiceName}`}
         onChangeValue={(_, nextValue, self) => {
           const next = normalizeValue(nextValue);
           if (normalizeValue(self.getValue()) === next) {

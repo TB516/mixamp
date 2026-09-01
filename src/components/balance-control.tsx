@@ -5,10 +5,17 @@ import { GtkBox, GtkButton, GtkImage, GtkLabel, GtkSpinner } from "@gtkx/jsx/gtk
 import { AsyncResult } from "effect/unstable/reactivity";
 
 import { setWirePlumberCrossfade } from "../wireplumber/index.ts";
+import type { WirePlumberState } from "../wireplumber/index.ts";
 import { BalanceSlider } from "./balance-slider.tsx";
 
 /** Balance controls shown when the audio connection is ready. */
-export const BalanceControl = ({ crossfade }: { readonly crossfade: number }) => {
+export const BalanceControl = ({
+  crossfade,
+  sinks,
+}: {
+  readonly crossfade: number;
+  readonly sinks: WirePlumberState["sinks"];
+}) => {
   const [crossfadeResult, setCrossfade] = useAtom(setWirePlumberCrossfade);
   const operationMessage = AsyncResult.matchWithError(crossfadeResult, {
     onInitial: () => null,
@@ -75,6 +82,7 @@ export const BalanceControl = ({ crossfade }: { readonly crossfade: number }) =>
 
         <BalanceSlider
           value={crossfade}
+          sinks={sinks}
           resetToken={
             crossfadeResult._tag === "Failure" && !crossfadeResult.waiting ? crossfadeResult : null
           }

@@ -24,7 +24,7 @@ export const MainScreen = () => {
         );
       }
 
-      return <BalanceControl crossfade={value.crossfade} />;
+      return <BalanceControl crossfade={value.crossfade} sinks={value.sinks} />;
     },
     onError: (error) => {
       let canReconnect = false;
