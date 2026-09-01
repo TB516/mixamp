@@ -6,8 +6,8 @@ import {
   WirePlumberPlaybackNodeManagerError,
   WirePlumberPlaybackNodeTimeoutError,
   WirePlumberVirtualSinkLoadError,
-} from "../errors.ts";
-import type { WirePlumberSink } from "../types.ts";
+} from "../../errors.ts";
+import { wirePlumberSinkNames, type WirePlumberSink } from "../../types.ts";
 import { sinkDefinitions } from "./definitions.ts";
 import { makePlaybackNodeManager, waitForPlaybackNodes } from "./playback-nodes.ts";
 import type { PlaybackNodes } from "./playback-nodes.ts";
@@ -20,14 +20,15 @@ const loadVirtualSink = (
   Effect.try({
     try: () => {
       const definition = sinkDefinitions[sink];
+      const name = wirePlumberSinkNames[sink];
       const module = Wp.ImplModule.load(
         core,
         "libpipewire-module-loopback",
         JSON.stringify({
-          "node.description": definition.name,
+          "node.description": name,
           "capture.props": {
             "node.name": definition.nodeName,
-            "node.description": definition.name,
+            "node.description": name,
             "media.class": "Audio/Sink",
             "audio.position": ["FL", "FR"],
           },

@@ -12,10 +12,10 @@ import {
   WirePlumberSignalCleanupError,
   WirePlumberSignalSetupError,
   WirePlumberVirtualSinkLoadError,
-} from "./errors.ts";
+} from "../errors.ts";
+import type { WirePlumberService, WirePlumberSignal, WirePlumberState } from "../types.ts";
 import { setVirtualSinkCrossfade } from "./sinks/crossfade.ts";
 import { makeVirtualSinks } from "./sinks/virtual-sinks.ts";
-import type { WirePlumberService, WirePlumberSignal, WirePlumberState } from "./types.ts";
 
 /** Initializes the WirePlumber library and its SPA types. */
 const initializeWirePlumber: Effect.Effect<void, WirePlumberInitializationError> = Effect.try({
@@ -94,11 +94,11 @@ const releaseCore = (core: Wp.Core, state: SubscriptionRef.SubscriptionRef<WireP
   );
 
 /**
- * Creates and connects the WirePlumber core.
+ * Creates the scoped WirePlumber backend resource.
  *
  * The returned Effect owns the core and its signal handlers until its scope closes.
  */
-export const makeWirePlumberConnection = (
+export const makeWirePlumberResource = (
   state: SubscriptionRef.SubscriptionRef<WirePlumberState>,
 ): Effect.Effect<
   WirePlumberService,
@@ -135,7 +135,6 @@ export const makeWirePlumberConnection = (
     const playbackNodes = yield* makeVirtualSinks(core);
 
     return {
-      core,
       state,
       setCrossfade: (crossfade) =>
         Effect.gen(function* () {

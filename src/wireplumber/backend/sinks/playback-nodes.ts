@@ -6,8 +6,8 @@ import {
   WirePlumberPlaybackNodeDiscoveryError,
   WirePlumberPlaybackNodeManagerError,
   WirePlumberPlaybackNodeTimeoutError,
-} from "../errors.ts";
-import type { WirePlumberSink } from "../types.ts";
+} from "../../errors.ts";
+import type { WirePlumberSink } from "../../types.ts";
 import { sinkDefinitions } from "./definitions.ts";
 
 /** Game and Voice playback nodes routed to the default output. */

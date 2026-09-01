@@ -1,4 +1,3 @@
-import type * as Wp from "@gtkx/gi/wp";
 import { Effect, SubscriptionRef } from "effect";
 
 import type {
@@ -6,13 +5,18 @@ import type {
   WirePlumberCrossfadeRollbackError,
   WirePlumberSinkGainError,
 } from "./errors.ts";
-import { sinkDefinitions } from "./sinks/definitions.ts";
 
 /** Core connection signals tracked by Mixamp. */
 export type WirePlumberSignal = "connected" | "disconnected";
 
 /** Mixamp virtual sink identifiers. */
-export type WirePlumberSink = keyof typeof sinkDefinitions;
+export type WirePlumberSink = "game" | "voice";
+
+/** Display names published for Mixamp's virtual sinks. */
+export const wirePlumberSinkNames = {
+  game: "Mixamp Game",
+  voice: "Mixamp Voice",
+} satisfies Record<WirePlumberSink, string>;
 
 /** State published by the WirePlumber service. */
 export type WirePlumberState = {
@@ -40,15 +44,13 @@ export const initialWirePlumberState: WirePlumberState = {
   connected: false,
   crossfade: 0,
   sinks: {
-    game: { name: sinkDefinitions.game.name },
-    voice: { name: sinkDefinitions.voice.name },
+    game: { name: wirePlumberSinkNames.game },
+    voice: { name: wirePlumberSinkNames.voice },
   },
 };
 
-/** Service value available to Effects that need the native WirePlumber core. */
+/** Service value exposed to Effects that use Mixamp's audio controls. */
 export type WirePlumberService = {
-  /** Active WirePlumber core. */
-  readonly core: Wp.Core;
   /** State published by the service. */
   readonly state: SubscriptionRef.SubscriptionRef<WirePlumberState>;
   /** Applies the Game/Voice balance and returns the clamped crossfade value. */

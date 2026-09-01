@@ -5,8 +5,8 @@ import {
   WirePlumberCrossfadeError,
   WirePlumberCrossfadeRollbackError,
   WirePlumberSinkGainError,
-} from "../errors.ts";
-import type { WirePlumberSink } from "../types.ts";
+} from "../../errors.ts";
+import type { WirePlumberSink } from "../../types.ts";
 import type { PlaybackNodes } from "./playback-nodes.ts";
 
 /** Creates a WirePlumber volume parameter for the given gain. */
