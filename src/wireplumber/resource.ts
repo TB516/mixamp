@@ -6,13 +6,16 @@ import {
   WirePlumberCoreCreationError,
   WirePlumberDisconnectionError,
   WirePlumberInitializationError,
+  WirePlumberPlaybackNodeDiscoveryError,
+  WirePlumberPlaybackNodeManagerError,
+  WirePlumberPlaybackNodeTimeoutError,
   WirePlumberSignalCleanupError,
   WirePlumberSignalSetupError,
-  WirePlumberVirtualSinkError,
+  WirePlumberVirtualSinkLoadError,
 } from "./errors.ts";
 import { setVirtualSinkCrossfade } from "./sinks/crossfade.ts";
 import { makeVirtualSinks } from "./sinks/virtual-sinks.ts";
-import type { WirePlumberService, WirePlumberState } from "./types.ts";
+import type { WirePlumberService, WirePlumberSignal, WirePlumberState } from "./types.ts";
 
 /** Initializes the WirePlumber library and its SPA types. */
 const initializeWirePlumber: Effect.Effect<void, WirePlumberInitializationError> = Effect.try({
@@ -61,18 +64,18 @@ const connectCore = (core: Wp.Core): Effect.Effect<void, WirePlumberConnectionEr
 /** Registers a scoped handler for a WirePlumber core signal. */
 const acquireCoreSignal = (
   core: Wp.Core,
-  signal: "connected" | "disconnected",
+  signal: WirePlumberSignal,
   handler: () => void,
 ): Effect.Effect<number, WirePlumberSignalSetupError, Scope.Scope> =>
   Effect.acquireRelease(
     Effect.try({
       try: () => core.connect(signal, handler),
-      catch: (cause) => new WirePlumberSignalSetupError({ cause }),
+      catch: (cause) => new WirePlumberSignalSetupError({ signal, cause }),
     }),
     (handlerId) =>
       Effect.try({
         try: () => core.disconnect(handlerId),
-        catch: (cause) => new WirePlumberSignalCleanupError({ cause }),
+        catch: (cause) => new WirePlumberSignalCleanupError({ signal, cause }),
       }).pipe(Effect.orDie),
   );
 
@@ -103,7 +106,10 @@ export const makeWirePlumberConnection = (
   | WirePlumberCoreCreationError
   | WirePlumberSignalSetupError
   | WirePlumberConnectionError
-  | WirePlumberVirtualSinkError,
+  | WirePlumberPlaybackNodeManagerError
+  | WirePlumberPlaybackNodeDiscoveryError
+  | WirePlumberVirtualSinkLoadError
+  | WirePlumberPlaybackNodeTimeoutError,
   Scope.Scope
 > =>
   Effect.gen(function* () {

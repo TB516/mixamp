@@ -2,7 +2,12 @@ import * as GLib from "@gtkx/gi/glib";
 import * as Wp from "@gtkx/gi/wp";
 import { Effect } from "effect";
 
-import { WirePlumberVirtualSinkError } from "../errors.ts";
+import {
+  WirePlumberPlaybackNodeDiscoveryError,
+  WirePlumberPlaybackNodeManagerError,
+  WirePlumberPlaybackNodeTimeoutError,
+} from "../errors.ts";
+import type { WirePlumberSink } from "../types.ts";
 import { sinkDefinitions } from "./definitions.ts";
 
 /** Game and Voice playback nodes routed to the default output. */
@@ -14,13 +19,13 @@ export type PlaybackNodes = {
 };
 
 /** Creates a WirePlumber interest for a virtual sink's playback node. */
-const makePlaybackNodeInterest = (nodeName: string) => {
+const makePlaybackNodeInterest = (sink: WirePlumberSink) => {
   const interest = Wp.ObjectInterest.newType(Wp.Node);
   interest.addConstraint(
     Wp.ConstraintType.PW_GLOBAL_PROPERTY,
     "node.name",
     Wp.ConstraintVerb.EQUALS,
-    GLib.Variant.newString(`${nodeName}.output`),
+    GLib.Variant.newString(`${sinkDefinitions[sink].nodeName}.output`),
   );
   return interest;
 };
@@ -28,12 +33,12 @@ const makePlaybackNodeInterest = (nodeName: string) => {
 /** Creates an object manager that tracks the Game and Voice playback nodes. */
 export const makePlaybackNodeManager = (
   core: Wp.Core,
-): Effect.Effect<Wp.ObjectManager, WirePlumberVirtualSinkError> =>
+): Effect.Effect<Wp.ObjectManager, WirePlumberPlaybackNodeManagerError> =>
   Effect.try({
     try: () => {
       const objectManager = Wp.ObjectManager.new();
-      objectManager.addInterestFull(makePlaybackNodeInterest(sinkDefinitions.game.nodeName));
-      objectManager.addInterestFull(makePlaybackNodeInterest(sinkDefinitions.voice.nodeName));
+      objectManager.addInterestFull(makePlaybackNodeInterest("game"));
+      objectManager.addInterestFull(makePlaybackNodeInterest("voice"));
       objectManager.requestObjectFeatures(
         Wp.Node,
         Wp.ProxyFeatures.PIPEWIRE_OBJECT_FEATURES_MINIMAL,
@@ -41,45 +46,56 @@ export const makePlaybackNodeManager = (
       core.installObjectManager(objectManager);
       return objectManager;
     },
-    catch: (cause) => new WirePlumberVirtualSinkError({ cause }),
+    catch: (cause) => new WirePlumberPlaybackNodeManagerError({ cause }),
   });
 
 /** Looks up a virtual sink's playback node by name. */
-const lookupPlaybackNode = (objectManager: Wp.ObjectManager, nodeName: string) => {
+const lookupPlaybackNode = (objectManager: Wp.ObjectManager, sink: WirePlumberSink) => {
   // lookupFull takes ownership of the interest, so each lookup needs a new one.
-  const object = objectManager.lookupFull(makePlaybackNodeInterest(nodeName));
+  const object = objectManager.lookupFull(makePlaybackNodeInterest(sink));
   return object instanceof Wp.Node ? object : null;
 };
 
 /** Waits for the Game and Voice playback nodes to become available. */
 export const waitForPlaybackNodes = (
   objectManager: Wp.ObjectManager,
-): Effect.Effect<PlaybackNodes, WirePlumberVirtualSinkError> =>
-  Effect.callback<PlaybackNodes, WirePlumberVirtualSinkError>((resume) => {
+): Effect.Effect<
+  PlaybackNodes,
+  WirePlumberPlaybackNodeDiscoveryError | WirePlumberPlaybackNodeTimeoutError
+> => {
+  let missing: WirePlumberSink = "game";
+
+  return Effect.callback<PlaybackNodes, WirePlumberPlaybackNodeDiscoveryError>((resume) => {
     let handlerId: number | undefined;
+
+    const disconnectHandler = () => {
+      if (handlerId === undefined) {
+        return;
+      }
+
+      objectManager.disconnect(handlerId);
+      handlerId = undefined;
+    };
 
     const checkForNodes = () => {
       try {
-        const game = lookupPlaybackNode(objectManager, sinkDefinitions.game.nodeName);
-        const voice = lookupPlaybackNode(objectManager, sinkDefinitions.voice.nodeName);
-
-        if (!game || !voice) {
+        const game = lookupPlaybackNode(objectManager, "game");
+        if (!game) {
+          missing = "game";
           return;
         }
 
-        if (handlerId !== undefined) {
-          objectManager.disconnect(handlerId);
-          handlerId = undefined;
+        const voice = lookupPlaybackNode(objectManager, "voice");
+        if (!voice) {
+          missing = "voice";
+          return;
         }
 
+        disconnectHandler();
         resume(Effect.succeed({ game, voice }));
       } catch (cause) {
-        if (handlerId !== undefined) {
-          objectManager.disconnect(handlerId);
-          handlerId = undefined;
-        }
-
-        resume(Effect.fail(new WirePlumberVirtualSinkError({ cause })));
+        disconnectHandler();
+        resume(Effect.fail(new WirePlumberPlaybackNodeDiscoveryError({ cause })));
       }
     };
 
@@ -87,22 +103,15 @@ export const waitForPlaybackNodes = (
       handlerId = objectManager.connect("objects-changed", checkForNodes);
       checkForNodes();
     } catch (cause) {
-      resume(Effect.fail(new WirePlumberVirtualSinkError({ cause })));
+      disconnectHandler();
+      resume(Effect.fail(new WirePlumberPlaybackNodeDiscoveryError({ cause })));
     }
 
-    return Effect.sync(() => {
-      if (handlerId !== undefined) {
-        objectManager.disconnect(handlerId);
-      }
-    });
+    return Effect.sync(disconnectHandler);
   }).pipe(
     Effect.timeoutOrElse({
       duration: "5 seconds",
-      orElse: () =>
-        Effect.fail(
-          new WirePlumberVirtualSinkError({
-            cause: "Timed out waiting for the virtual sink playback nodes",
-          }),
-        ),
+      orElse: () => Effect.fail(new WirePlumberPlaybackNodeTimeoutError({ missing })),
     }),
   );
+};

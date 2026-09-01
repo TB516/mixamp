@@ -49,10 +49,25 @@ export const MainScreen = () => {
           title = "Could not connect to PipeWire";
           description = "Check that PipeWire is running, then reconnect.";
           break;
-        case "WirePlumberVirtualSinkError":
+        case "WirePlumberPlaybackNodeManagerError":
+          canReconnect = true;
+          title = "Could not monitor the Mixamp outputs";
+          description = "Mixamp could not monitor its Game and Voice outputs.";
+          break;
+        case "WirePlumberPlaybackNodeDiscoveryError":
+          canReconnect = true;
+          title = "Could not find the Mixamp outputs";
+          description = "Mixamp could not find its Game and Voice outputs in PipeWire.";
+          break;
+        case "WirePlumberVirtualSinkLoadError":
           canReconnect = true;
           title = "Could not create the Mixamp outputs";
           description = "The Game and Voice outputs could not be added to PipeWire.";
+          break;
+        case "WirePlumberPlaybackNodeTimeoutError":
+          canReconnect = true;
+          title = "Mixamp outputs did not become ready";
+          description = "The Game and Voice outputs did not become available in PipeWire.";
           break;
         case "NoSuchElementError":
           title = "The audio connection ended";

@@ -1,8 +1,18 @@
 import type * as Wp from "@gtkx/gi/wp";
 import { Effect, SubscriptionRef } from "effect";
 
-import type { WirePlumberCrossfadeError } from "./errors.ts";
+import type {
+  WirePlumberCrossfadeError,
+  WirePlumberCrossfadeRollbackError,
+  WirePlumberSinkGainError,
+} from "./errors.ts";
 import { sinkDefinitions } from "./sinks/definitions.ts";
+
+/** Core connection signals tracked by Mixamp. */
+export type WirePlumberSignal = "connected" | "disconnected";
+
+/** Mixamp virtual sink identifiers. */
+export type WirePlumberSink = keyof typeof sinkDefinitions;
 
 /** State published by the WirePlumber service. */
 export type WirePlumberState = {
@@ -42,5 +52,10 @@ export type WirePlumberService = {
   /** State published by the service. */
   readonly state: SubscriptionRef.SubscriptionRef<WirePlumberState>;
   /** Applies the Game/Voice balance and returns the clamped crossfade value. */
-  readonly setCrossfade: (crossfade: number) => Effect.Effect<number, WirePlumberCrossfadeError>;
+  readonly setCrossfade: (
+    crossfade: number,
+  ) => Effect.Effect<
+    number,
+    WirePlumberCrossfadeError | WirePlumberSinkGainError | WirePlumberCrossfadeRollbackError
+  >;
 };

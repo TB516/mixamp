@@ -1,7 +1,12 @@
 import * as Wp from "@gtkx/gi/wp";
 import { Effect } from "effect";
 
-import { WirePlumberCrossfadeError } from "../errors.ts";
+import {
+  WirePlumberCrossfadeError,
+  WirePlumberCrossfadeRollbackError,
+  WirePlumberSinkGainError,
+} from "../errors.ts";
+import type { WirePlumberSink } from "../types.ts";
 import type { PlaybackNodes } from "./playback-nodes.ts";
 
 /** Creates a WirePlumber volume parameter for the given gain. */
@@ -15,21 +20,23 @@ const makeVolumePod = (gain: number) => {
 /** Applies a gain to a virtual sink. */
 const setSinkGain = (
   node: Wp.Node,
-  sinkName: "Game" | "Voice",
+  sink: WirePlumberSink,
   gain: number,
-): Effect.Effect<void, WirePlumberCrossfadeError> =>
+): Effect.Effect<void, WirePlumberSinkGainError> =>
   Effect.gen(function* () {
     const updated = yield* Effect.try({
       try: () => node.setParam("Props", 0, makeVolumePod(gain)),
-      catch: (cause) => new WirePlumberCrossfadeError({ cause }),
+      catch: (cause) => new WirePlumberSinkGainError({ sink, gain, cause }),
     });
 
     if (updated) {
       return;
     }
 
-    return yield* new WirePlumberCrossfadeError({
-      cause: `Could not set the ${sinkName} sink gain`,
+    return yield* new WirePlumberSinkGainError({
+      sink,
+      gain,
+      cause: "Wp.Node.setParam() returned false",
     });
   });
 
@@ -53,7 +60,10 @@ export const setVirtualSinkCrossfade = (
   playbackNodes: PlaybackNodes,
   crossfade: number,
   previousCrossfade = 0,
-): Effect.Effect<number, WirePlumberCrossfadeError> =>
+): Effect.Effect<
+  number,
+  WirePlumberCrossfadeError | WirePlumberSinkGainError | WirePlumberCrossfadeRollbackError
+> =>
   Effect.gen(function* () {
     const value = yield* clampCrossfade(crossfade, "Crossfade");
     const previousValue = yield* clampCrossfade(previousCrossfade, "Previous crossfade");
@@ -61,20 +71,23 @@ export const setVirtualSinkCrossfade = (
     const voiceGain = value < 0 ? 1 + value : 1;
     const previousGameGain = previousValue > 0 ? 1 - previousValue : 1;
 
-    yield* setSinkGain(playbackNodes.game, "Game", gameGain);
-    yield* setSinkGain(playbackNodes.voice, "Voice", voiceGain).pipe(
-      Effect.catch((voiceCause) =>
+    yield* setSinkGain(playbackNodes.game, "game", gameGain);
+    yield* setSinkGain(playbackNodes.voice, "voice", voiceGain).pipe(
+      Effect.catch((updateError) =>
         Effect.gen(function* () {
-          yield* setSinkGain(playbackNodes.game, "Game", previousGameGain).pipe(
+          yield* setSinkGain(playbackNodes.game, "game", previousGameGain).pipe(
             Effect.mapError(
-              (rollbackCause) =>
-                new WirePlumberCrossfadeError({
-                  cause: { voice: voiceCause, rollback: rollbackCause },
+              (rollbackError) =>
+                new WirePlumberCrossfadeRollbackError({
+                  crossfade: value,
+                  previousCrossfade: previousValue,
+                  updateError,
+                  rollbackError,
                 }),
             ),
           );
 
-          return yield* voiceCause;
+          return yield* updateError;
         }),
       ),
     );

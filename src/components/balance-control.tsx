@@ -16,7 +16,10 @@ export const BalanceControl = ({ crossfade }: { readonly crossfade: number }) =>
     onError: (error) => {
       switch (error._tag) {
         case "WirePlumberCrossfadeError":
+        case "WirePlumberSinkGainError":
           return "The balance could not be changed. Your previous setting is still active.";
+        case "WirePlumberCrossfadeRollbackError":
+          return "The balance update was incomplete. The Game and Voice levels may be out of sync.";
         case "WirePlumberInitializationError":
           return "The balance control could not initialize WirePlumber.";
         case "WirePlumberCoreCreationError":
@@ -25,7 +28,13 @@ export const BalanceControl = ({ crossfade }: { readonly crossfade: number }) =>
           return "The balance control could not monitor its WirePlumber connection.";
         case "WirePlumberConnectionError":
           return "The balance control could not connect to PipeWire.";
-        case "WirePlumberVirtualSinkError":
+        case "WirePlumberPlaybackNodeManagerError":
+          return "The balance control could not monitor the Game and Voice outputs.";
+        case "WirePlumberPlaybackNodeDiscoveryError":
+          return "The balance control could not find the Game and Voice outputs.";
+        case "WirePlumberVirtualSinkLoadError":
+          return "The balance control could not create the Game and Voice outputs.";
+        case "WirePlumberPlaybackNodeTimeoutError":
           return "The balance control could not access the Game and Voice outputs.";
         default:
           return error satisfies never;
