@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly APP_ID="io.github.TB516.mixamp"
+readonly PROJECT_ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
+readonly STATE_DIR="$PROJECT_ROOT/build-flatpak"
+readonly BUILD_DIR="$STATE_DIR/build"
+readonly REPO_DIR="$STATE_DIR/repo"
+readonly BUNDLE="$STATE_DIR/$APP_ID.flatpak"
+readonly MANIFEST="$PROJECT_ROOT/flatpak/$APP_ID.yml"
+readonly RUNTIME_REPO="https://flathub.org/repo/flathub.flatpakrepo"
+
+require_command() {
+    if command -v "$1" >/dev/null 2>&1; then
+        return
+    fi
+
+    echo "Missing required host command: $1" >&2
+    exit 1
+}
+
+require_command flatpak
+require_command flatpak-builder
+
+mkdir -p "$STATE_DIR"
+
+flatpak-builder \
+    --user \
+    --force-clean \
+    --state-dir="$STATE_DIR/builder-state" \
+    --repo="$REPO_DIR" \
+    "$BUILD_DIR" \
+    "$MANIFEST"
+
+flatpak build-bundle \
+    --runtime-repo="$RUNTIME_REPO" \
+    "$REPO_DIR" \
+    "$BUNDLE" \
+    "$APP_ID"
+
+echo
+echo "Built $BUNDLE"
+echo "Install it with:"
+echo "    flatpak install --user --or-update '$BUNDLE'"
