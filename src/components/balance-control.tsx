@@ -3,20 +3,31 @@ import * as Gtk from "@gtkx/gi/gtk";
 import { AdwClamp } from "@gtkx/jsx/adw";
 import { GtkBox, GtkButton, GtkImage, GtkLabel, GtkSpinner } from "@gtkx/jsx/gtk";
 import { AsyncResult } from "effect/unstable/reactivity";
+import type { Atom } from "effect/unstable/reactivity";
 
-import { setWirePlumberCrossfade } from "../wireplumber/index.ts";
-import type { WirePlumberState } from "../wireplumber/index.ts";
+import type {
+  WirePlumberCrossfadeError,
+  WirePlumberCrossfadeRollbackError,
+  WirePlumberSinkGainError,
+} from "../wireplumber/errors.ts";
+import type { WirePlumberState } from "../wireplumber/types.ts";
 import { BalanceSlider } from "./balance-slider.tsx";
 
 /** Balance controls shown when the audio connection is ready. */
 export const BalanceControl = ({
   crossfade,
   sinks,
+  crossfadeAtom,
 }: {
   readonly crossfade: number;
   readonly sinks: WirePlumberState["sinks"];
+  readonly crossfadeAtom: Atom.AtomResultFn<
+    number,
+    number,
+    WirePlumberCrossfadeError | WirePlumberSinkGainError | WirePlumberCrossfadeRollbackError
+  >;
 }) => {
-  const [crossfadeResult, setCrossfade] = useAtom(setWirePlumberCrossfade);
+  const [crossfadeResult, setCrossfade] = useAtom(crossfadeAtom);
   const operationMessage = AsyncResult.matchWithError(crossfadeResult, {
     onInitial: () => null,
     onSuccess: () => null,
@@ -27,22 +38,6 @@ export const BalanceControl = ({
           return "The balance could not be changed. Your previous setting is still active.";
         case "WirePlumberCrossfadeRollbackError":
           return "The balance update was incomplete. The Game and Voice levels may be out of sync.";
-        case "WirePlumberInitializationError":
-          return "The balance control could not initialize WirePlumber.";
-        case "WirePlumberCoreCreationError":
-          return "The balance control could not create its WirePlumber connection.";
-        case "WirePlumberSignalSetupError":
-          return "The balance control could not monitor its WirePlumber connection.";
-        case "WirePlumberConnectionError":
-          return "The balance control could not connect to PipeWire.";
-        case "WirePlumberPlaybackNodeManagerError":
-          return "The balance control could not monitor the Game and Voice outputs.";
-        case "WirePlumberPlaybackNodeDiscoveryError":
-          return "The balance control could not find the Game and Voice outputs.";
-        case "WirePlumberVirtualSinkLoadError":
-          return "The balance control could not create the Game and Voice outputs.";
-        case "WirePlumberPlaybackNodeTimeoutError":
-          return "The balance control could not access the Game and Voice outputs.";
         default:
           return error satisfies never;
       }

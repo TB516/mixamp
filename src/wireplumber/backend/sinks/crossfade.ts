@@ -10,12 +10,13 @@ import type { WirePlumberSink } from "../../types.ts";
 import type { PlaybackNodes } from "./playback-nodes.ts";
 
 /** Creates a WirePlumber volume parameter for the given gain. */
-const makeVolumePod = (gain: number) => {
-  const builder = Wp.SpaPodBuilder.newObject("Spa:Pod:Object:Param:Props", "Props");
-  builder.addProperty("volume");
-  builder.addFloat(gain);
-  return builder.end();
-};
+const makeVolumePod = (gain: number): Effect.Effect<Wp.SpaPod> =>
+  Effect.sync(() => {
+    const builder = Wp.SpaPodBuilder.newObject("Spa:Pod:Object:Param:Props", "Props");
+    builder.addProperty("volume");
+    builder.addFloat(gain);
+    return builder.end();
+  });
 
 /** Applies a gain to a virtual sink. */
 const setSinkGain = (
@@ -24,10 +25,8 @@ const setSinkGain = (
   gain: number,
 ): Effect.Effect<void, WirePlumberSinkGainError> =>
   Effect.gen(function* () {
-    const updated = yield* Effect.try({
-      try: () => node.setParam("Props", 0, makeVolumePod(gain)),
-      catch: (cause) => new WirePlumberSinkGainError({ sink, gain, cause }),
-    });
+    const volumePod = yield* makeVolumePod(gain);
+    const updated = node.setParam("Props", 0, volumePod);
 
     if (updated) {
       return;
@@ -40,20 +39,14 @@ const setSinkGain = (
     });
   });
 
-/** Clamps a crossfade or fails when it is not finite. */
-const clampCrossfade = (
-  crossfade: number,
-  name: "Crossfade" | "Previous crossfade",
-): Effect.Effect<number, WirePlumberCrossfadeError> =>
-  Effect.gen(function* () {
-    if (!Number.isFinite(crossfade)) {
-      return yield* new WirePlumberCrossfadeError({
-        cause: `${name} must be a finite number`,
-      });
-    }
+/** Clamps a crossfade, returning undefined when it is not finite. */
+const clampCrossfade = (crossfade: number): number | undefined => {
+  if (!Number.isFinite(crossfade)) {
+    return undefined;
+  }
 
-    return Math.max(-1, Math.min(1, crossfade));
-  });
+  return Math.max(-1, Math.min(1, crossfade));
+};
 
 /** Applies the Game/Voice balance and returns the clamped value. */
 export const setVirtualSinkCrossfade = (
@@ -65,8 +58,20 @@ export const setVirtualSinkCrossfade = (
   WirePlumberCrossfadeError | WirePlumberSinkGainError | WirePlumberCrossfadeRollbackError
 > =>
   Effect.gen(function* () {
-    const value = yield* clampCrossfade(crossfade, "Crossfade");
-    const previousValue = yield* clampCrossfade(previousCrossfade, "Previous crossfade");
+    const value = clampCrossfade(crossfade);
+    if (value === undefined) {
+      return yield* new WirePlumberCrossfadeError({
+        cause: "Crossfade must be a finite number",
+      });
+    }
+
+    const previousValue = clampCrossfade(previousCrossfade);
+    if (previousValue === undefined) {
+      return yield* new WirePlumberCrossfadeError({
+        cause: "Previous crossfade must be a finite number",
+      });
+    }
+
     const gameGain = value > 0 ? 1 - value : 1;
     const voiceGain = value < 0 ? 1 + value : 1;
     const previousGameGain = previousValue > 0 ? 1 - previousValue : 1;

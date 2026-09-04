@@ -2,8 +2,6 @@ import * as Wp from "@gtkx/gi/wp";
 import { Effect, Scope } from "effect";
 
 import {
-  WirePlumberPlaybackNodeDiscoveryError,
-  WirePlumberPlaybackNodeManagerError,
   WirePlumberPlaybackNodeTimeoutError,
   WirePlumberVirtualSinkLoadError,
 } from "../../errors.ts";
@@ -17,38 +15,38 @@ const loadVirtualSink = (
   core: Wp.Core,
   sink: WirePlumberSink,
 ): Effect.Effect<Wp.ImplModule, WirePlumberVirtualSinkLoadError> =>
-  Effect.try({
-    try: () => {
-      const definition = sinkDefinitions[sink];
-      const name = wirePlumberSinkNames[sink];
-      const module = Wp.ImplModule.load(
-        core,
-        "libpipewire-module-loopback",
-        JSON.stringify({
+  Effect.gen(function* () {
+    const definition = sinkDefinitions[sink];
+    const name = wirePlumberSinkNames[sink];
+    const module = Wp.ImplModule.load(
+      core,
+      "libpipewire-module-loopback",
+      JSON.stringify({
+        "node.description": name,
+        "capture.props": {
+          "node.name": definition.nodeName,
           "node.description": name,
-          "capture.props": {
-            "node.name": definition.nodeName,
-            "node.description": name,
-            "media.class": "Audio/Sink",
-            "audio.position": ["FL", "FR"],
-          },
-          "playback.props": {
-            "node.name": `${definition.nodeName}.output`,
-            "audio.position": ["FL", "FR"],
-            "node.passive": true,
-            "stream.dont-remix": true,
-          },
-        }),
-        null,
-      );
+          "media.class": "Audio/Sink",
+          "audio.position": ["FL", "FR"],
+        },
+        "playback.props": {
+          "node.name": `${definition.nodeName}.output`,
+          "audio.position": ["FL", "FR"],
+          "node.passive": true,
+          "stream.dont-remix": true,
+        },
+      }),
+      null,
+    );
 
-      if (!module) {
-        throw new Error(`Could not load virtual sink ${definition.nodeName}`);
-      }
-
+    if (module) {
       return module;
-    },
-    catch: (cause) => new WirePlumberVirtualSinkLoadError({ sink, cause }),
+    }
+
+    return yield* new WirePlumberVirtualSinkLoadError({
+      sink,
+      cause: `Wp.ImplModule.load() returned null for ${definition.nodeName}`,
+    });
   });
 
 /**
@@ -61,20 +59,21 @@ export const makeVirtualSinks = (
   core: Wp.Core,
 ): Effect.Effect<
   PlaybackNodes,
-  | WirePlumberPlaybackNodeManagerError
-  | WirePlumberPlaybackNodeDiscoveryError
-  | WirePlumberVirtualSinkLoadError
-  | WirePlumberPlaybackNodeTimeoutError,
+  WirePlumberVirtualSinkLoadError | WirePlumberPlaybackNodeTimeoutError,
   Scope.Scope
 > =>
   Effect.gen(function* () {
     const objectManager = yield* makePlaybackNodeManager(core);
 
     yield* Effect.acquireRelease(loadVirtualSink(core, "game"), (module) =>
-      Effect.sync(() => module.unload()),
+      Effect.sync(() => {
+        module.unload();
+      }),
     );
     yield* Effect.acquireRelease(loadVirtualSink(core, "voice"), (module) =>
-      Effect.sync(() => module.unload()),
+      Effect.sync(() => {
+        module.unload();
+      }),
     );
 
     return yield* waitForPlaybackNodes(objectManager);

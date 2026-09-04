@@ -1,8 +1,8 @@
 import { AdwStatusPage } from "@gtkx/jsx/adw";
 import { GtkButton } from "@gtkx/jsx/gtk";
 
-/** Properties for a status page shown when the audio connection is unavailable. */
-type ConnectionStatusPageProps = {
+/** Properties for a component shown when the audio connection is unavailable. */
+type ConnectionStatusProps = {
   /** Status icon. */
   readonly iconName: string;
   /** Status title. */
@@ -14,12 +14,12 @@ type ConnectionStatusPageProps = {
 };
 
 /** Shows audio connection status and an optional reconnect action. */
-export const ConnectionStatusPage = ({
+export const ConnectionStatus = ({
   iconName,
   title,
   description,
   onReconnect,
-}: ConnectionStatusPageProps) => (
+}: ConnectionStatusProps) => (
   <AdwStatusPage iconName={iconName} title={title} description={description} hexpand vexpand>
     {onReconnect && <GtkButton label="Reconnect" onClicked={onReconnect} />}
   </AdwStatusPage>

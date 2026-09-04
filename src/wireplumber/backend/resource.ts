@@ -3,14 +3,7 @@ import { Effect, Scope, SubscriptionRef } from "effect";
 
 import {
   WirePlumberConnectionError,
-  WirePlumberCoreCreationError,
-  WirePlumberDisconnectionError,
-  WirePlumberInitializationError,
-  WirePlumberPlaybackNodeDiscoveryError,
-  WirePlumberPlaybackNodeManagerError,
   WirePlumberPlaybackNodeTimeoutError,
-  WirePlumberSignalCleanupError,
-  WirePlumberSignalSetupError,
   WirePlumberVirtualSinkLoadError,
 } from "../errors.ts";
 import type { WirePlumberService, WirePlumberSignal, WirePlumberState } from "../types.ts";
@@ -18,47 +11,33 @@ import { setVirtualSinkCrossfade } from "./sinks/crossfade.ts";
 import { makeVirtualSinks } from "./sinks/virtual-sinks.ts";
 
 /** Initializes the WirePlumber library and its SPA types. */
-const initializeWirePlumber: Effect.Effect<void, WirePlumberInitializationError> = Effect.try({
-  try: () => Wp.init(Wp.InitFlags.PIPEWIRE | Wp.InitFlags.SPA_TYPES),
-  catch: (cause) => new WirePlumberInitializationError({ cause }),
-});
+const initializeWirePlumber = Effect.sync(() =>
+  Wp.init(Wp.InitFlags.PIPEWIRE | Wp.InitFlags.SPA_TYPES),
+);
 
 /** Creates a WirePlumber core configured for Mixamp. */
-const makeCore: Effect.Effect<
-  Wp.Core,
-  WirePlumberInitializationError | WirePlumberCoreCreationError
-> = Effect.gen(function* () {
+const makeCore: Effect.Effect<Wp.Core> = Effect.gen(function* () {
   yield* initializeWirePlumber;
 
-  return yield* Effect.try({
-    try: () => {
-      const applicationProperties = Wp.Properties.newEmpty();
-      applicationProperties.set("application.id", "io.github.TB516.mixamp");
-      applicationProperties.set("application.name", "Mixamp");
+  const applicationProperties = Wp.Properties.newEmpty();
+  applicationProperties.set("application.id", "io.github.TB516.mixamp");
+  applicationProperties.set("application.name", "Mixamp");
 
-      return Wp.Core.new(null, null, applicationProperties);
-    },
-    catch: (cause) => new WirePlumberCoreCreationError({ cause }),
-  });
+  return Wp.Core.new(null, null, applicationProperties);
 });
 
 /** Connects a WirePlumber core to PipeWire. */
 const connectCore = (core: Wp.Core): Effect.Effect<void, WirePlumberConnectionError> =>
-  Effect.try({
-    try: () => {
-      if (!core.coreConnect()) {
-        throw new WirePlumberConnectionError({
-          cause: "Wp.Core.coreConnect() returned false",
-        });
-      }
-    },
-    catch: (cause) => {
-      if (cause instanceof WirePlumberConnectionError) {
-        return cause;
-      }
+  Effect.gen(function* () {
+    const connected = core.coreConnect();
 
-      return new WirePlumberConnectionError({ cause });
-    },
+    if (connected) {
+      return;
+    }
+
+    return yield* new WirePlumberConnectionError({
+      cause: "Wp.Core.coreConnect() returned false",
+    });
   });
 
 /** Registers a scoped handler for a WirePlumber core signal. */
@@ -66,31 +45,21 @@ const acquireCoreSignal = (
   core: Wp.Core,
   signal: WirePlumberSignal,
   handler: () => void,
-): Effect.Effect<number, WirePlumberSignalSetupError, Scope.Scope> =>
+): Effect.Effect<number, never, Scope.Scope> =>
   Effect.acquireRelease(
-    Effect.try({
-      try: () => core.connect(signal, handler),
-      catch: (cause) => new WirePlumberSignalSetupError({ signal, cause }),
-    }),
-    (handlerId) =>
-      Effect.try({
-        try: () => core.disconnect(handlerId),
-        catch: (cause) => new WirePlumberSignalCleanupError({ signal, cause }),
-      }).pipe(Effect.orDie),
+    Effect.sync(() => core.connect(signal, handler)),
+    (handlerId) => Effect.sync(() => core.disconnect(handlerId)),
   );
 
 /** Disconnects the core and publishes its disconnected state. */
 const releaseCore = (core: Wp.Core, state: SubscriptionRef.SubscriptionRef<WirePlumberState>) =>
-  Effect.try({
-    try: () => {
+  Effect.ensuring(
+    Effect.sync(() => {
       if (core.isConnected()) {
         core.coreDisconnect();
       }
-    },
-    catch: (cause) => new WirePlumberDisconnectionError({ cause }),
-  }).pipe(
-    Effect.ensuring(SubscriptionRef.update(state, (current) => ({ ...current, connected: false }))),
-    Effect.orDie,
+    }),
+    SubscriptionRef.update(state, (current) => ({ ...current, connected: false })),
   );
 
 /**
@@ -102,12 +71,7 @@ export const makeWirePlumberResource = (
   state: SubscriptionRef.SubscriptionRef<WirePlumberState>,
 ): Effect.Effect<
   WirePlumberService,
-  | WirePlumberInitializationError
-  | WirePlumberCoreCreationError
-  | WirePlumberSignalSetupError
   | WirePlumberConnectionError
-  | WirePlumberPlaybackNodeManagerError
-  | WirePlumberPlaybackNodeDiscoveryError
   | WirePlumberVirtualSinkLoadError
   | WirePlumberPlaybackNodeTimeoutError,
   Scope.Scope
@@ -128,10 +92,8 @@ export const makeWirePlumberResource = (
     );
 
     yield* connectCore(core);
-    yield* SubscriptionRef.update(state, (current) => ({
-      ...current,
-      connected: core.isConnected(),
-    }));
+    yield* SubscriptionRef.update(state, (current) => ({ ...current, connected: true }));
+
     const playbackNodes = yield* makeVirtualSinks(core);
 
     return {

@@ -1,6 +1,6 @@
 import { Data } from "effect";
 
-import type { WirePlumberSignal, WirePlumberSink } from "./types.ts";
+import type { WirePlumberSink } from "./types.ts";
 
 /** Properties shared by errors that preserve their original cause. */
 type WirePlumberCause = {
@@ -8,34 +8,9 @@ type WirePlumberCause = {
   readonly cause: unknown;
 };
 
-/** Error raised when libwireplumber initialization fails. */
-export class WirePlumberInitializationError extends Data.TaggedError(
-  "WirePlumberInitializationError",
-)<WirePlumberCause> {}
-
-/** Error raised while creating the WirePlumber core and its properties. */
-export class WirePlumberCoreCreationError extends Data.TaggedError(
-  "WirePlumberCoreCreationError",
-)<WirePlumberCause> {}
-
-/** Error raised while registering the core's connection signals. */
-export class WirePlumberSignalSetupError extends Data.TaggedError("WirePlumberSignalSetupError")<
-  WirePlumberCause & { readonly signal: WirePlumberSignal }
-> {}
-
 /** Error raised when the core cannot connect to PipeWire. */
 export class WirePlumberConnectionError extends Data.TaggedError(
   "WirePlumberConnectionError",
-)<WirePlumberCause> {}
-
-/** Error raised while preparing the manager that tracks virtual sink playback nodes. */
-export class WirePlumberPlaybackNodeManagerError extends Data.TaggedError(
-  "WirePlumberPlaybackNodeManagerError",
-)<WirePlumberCause> {}
-
-/** Error raised while discovering virtual sink playback nodes. */
-export class WirePlumberPlaybackNodeDiscoveryError extends Data.TaggedError(
-  "WirePlumberPlaybackNodeDiscoveryError",
 )<WirePlumberCause> {}
 
 /** Error raised when a virtual sink's PipeWire loopback module cannot be loaded. */
@@ -67,13 +42,3 @@ export class WirePlumberCrossfadeRollbackError extends Data.TaggedError(
   readonly updateError: WirePlumberSinkGainError;
   readonly rollbackError: WirePlumberSinkGainError;
 }> {}
-
-/** Error raised while removing the core's connection signal handlers. */
-export class WirePlumberSignalCleanupError extends Data.TaggedError(
-  "WirePlumberSignalCleanupError",
-)<WirePlumberCause & { readonly signal: WirePlumberSignal }> {}
-
-/** Error raised while disconnecting the WirePlumber core. */
-export class WirePlumberDisconnectionError extends Data.TaggedError(
-  "WirePlumberDisconnectionError",
-)<WirePlumberCause> {}

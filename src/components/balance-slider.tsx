@@ -3,7 +3,7 @@ import * as Gtk from "@gtkx/gi/gtk";
 import { GtkAdjustment, GtkBox, GtkLabel, GtkScale } from "@gtkx/jsx/gtk";
 import { useEffect, useMemo, useRef } from "react";
 
-import type { WirePlumberState } from "../wireplumber/index.ts";
+import type { WirePlumberState } from "../wireplumber/types.ts";
 
 /** Crossfade range and output interval used by the slider. */
 const sliderSettings = {

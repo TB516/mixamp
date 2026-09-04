@@ -2,6 +2,7 @@ import { RegistryProvider } from "@effect/atom-react";
 import { AdwApplication, AdwApplicationWindow, AdwHeaderBar, AdwToolbarView } from "@gtkx/jsx/adw";
 import { quit } from "@gtkx/react";
 
+import { WirePlumberProvider } from "./providers/wireplumber-provider.tsx";
 import { MainScreen } from "./screens/main-screen.tsx";
 
 /** Creates the Mixamp application and its main window. */
@@ -15,7 +16,9 @@ export const App = () => (
         onCloseRequest={quit}
       >
         <AdwToolbarView topBar={<AdwHeaderBar />}>
-          <MainScreen />
+          <WirePlumberProvider>
+            <MainScreen />
+          </WirePlumberProvider>
         </AdwToolbarView>
       </AdwApplicationWindow>
     </RegistryProvider>

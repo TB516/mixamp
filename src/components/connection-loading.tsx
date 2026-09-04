@@ -2,7 +2,7 @@ import * as Gtk from "@gtkx/gi/gtk";
 import { GtkBox, GtkLabel, GtkSpinner } from "@gtkx/jsx/gtk";
 
 /** Shows the loading state while Mixamp connects to the audio service. */
-export const ConnectionLoadingPage = () => (
+export const ConnectionLoading = () => (
   <GtkBox
     orientation={Gtk.Orientation.VERTICAL}
     spacing={16}
