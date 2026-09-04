@@ -88,7 +88,9 @@ export const waitForPlaybackNodes = (
     });
 
     const onObjectsChanged = () => {
-      Effect.runSyncWith(context)(checkForNodes);
+      Effect.runSyncWith(context)(
+        checkForNodes.pipe(Effect.catchCause((cause) => Deferred.failCause(ready, cause))),
+      );
     };
 
     yield* Effect.acquireRelease(
