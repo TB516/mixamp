@@ -14,7 +14,7 @@ export const MainScreen = () => {
       <ConnectionStatus
         iconName="audio-volume-muted-symbolic"
         title="PipeWire disconnected"
-        description="Mixamp is waiting for the audio service. Reopen the app after PipeWire is running."
+        description="Check that PipeWire is running, then click Reconnect."
         onReconnect={reconnect}
       />
     );
