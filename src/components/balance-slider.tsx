@@ -121,6 +121,7 @@ export const BalanceSlider = ({ value, sinks, resetToken, onChange }: BalanceSli
         hexpand
         cssClasses={[balanceScaleClass]}
         accessibleLabel={`${gameName} and ${voiceName} balance`}
+        accessibleValueText={`${gameName} ${gameLevel}%, ${voiceName} ${voiceLevel}%`}
         accessibleDescription={`Move left for ${gameName} and right for ${voiceName}`}
         tooltipText={`Move between ${gameName} and ${voiceName}`}
         onChangeValue={(_, nextValue, self) => {
