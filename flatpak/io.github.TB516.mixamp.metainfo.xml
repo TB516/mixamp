@@ -43,5 +43,15 @@
       <image>https://raw.githubusercontent.com/TB516/mixamp/main/assets/screenshots/balance.png</image>
     </screenshot>
   </screenshots>
+  <releases>
+    <release version="0.1.0" date="2026-09-05">
+      <description>
+        <p>
+          Initial release with separate Game and Voice outputs, a saved balance
+          control, background operation, and audio reconnection.
+        </p>
+      </description>
+    </release>
+  </releases>
   <content_rating type="oars-1.1" />
 </component>
