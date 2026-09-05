@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="io.github.TB516.mixamp" path="/io/github/TB516/mixamp/">
+    <key name="balance" type="d">
+      <range min="-1.0" max="1.0" />
+      <default>0.0</default>
+      <summary>Last successful Game/Voice balance</summary>
+      <description>
+        Balance from -1.0 for Game through 0.0 for center to 1.0 for Voice.
+        Restored when the app starts or reconnects to PipeWire.
+      </description>
+    </key>
+  </schema>
+</schemalist>

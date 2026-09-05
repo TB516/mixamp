@@ -1,4 +1,5 @@
 import { useAtomValue } from "@effect/atom-react";
+import * as Gio from "@gtkx/gi/gio";
 import * as Gtk from "@gtkx/gi/gtk";
 import { AdwApplication, AdwApplicationWindow, AdwHeaderBar, AdwToolbarView } from "@gtkx/jsx/adw";
 import { GMenu, GSimpleAction } from "@gtkx/jsx/gio";
@@ -29,6 +30,7 @@ export const App = () => {
   return (
     <AdwApplication
       onActivate={presentMainWindow}
+      onShutdown={() => Gio.Settings.sync()}
       actions={<GSimpleAction name="quit" onActivate={() => quit()} />}
       actionAccels={[{ detailedActionName: "app.quit", accels: ["<Primary>q"] }]}
     >

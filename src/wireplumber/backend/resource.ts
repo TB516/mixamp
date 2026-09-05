@@ -3,7 +3,10 @@ import { Effect, Scope, SubscriptionRef } from "effect";
 
 import {
   WirePlumberConnectionError,
+  WirePlumberCrossfadeError,
+  WirePlumberCrossfadeRollbackError,
   WirePlumberPlaybackNodeTimeoutError,
+  WirePlumberSinkGainError,
   WirePlumberVirtualSinkLoadError,
 } from "../errors.ts";
 import type { WirePlumberService, WirePlumberSignal, WirePlumberState } from "../types.ts";
@@ -69,11 +72,15 @@ const releaseCore = (core: Wp.Core, state: SubscriptionRef.SubscriptionRef<WireP
  */
 export const makeWirePlumberResource = (
   state: SubscriptionRef.SubscriptionRef<WirePlumberState>,
+  initialBalance: number,
 ): Effect.Effect<
   WirePlumberService,
   | WirePlumberConnectionError
   | WirePlumberVirtualSinkLoadError
-  | WirePlumberPlaybackNodeTimeoutError,
+  | WirePlumberPlaybackNodeTimeoutError
+  | WirePlumberCrossfadeError
+  | WirePlumberSinkGainError
+  | WirePlumberCrossfadeRollbackError,
   Scope.Scope
 > =>
   Effect.gen(function* () {
@@ -95,6 +102,10 @@ export const makeWirePlumberResource = (
     yield* SubscriptionRef.update(state, (current) => ({ ...current, connected: true }));
 
     const playbackNodes = yield* makeVirtualSinks(core);
+
+    // Fresh sinks start centered, which is also the rollback baseline.
+    const applied = yield* setVirtualSinkCrossfade(playbackNodes, initialBalance, 0);
+    yield* SubscriptionRef.update(state, (current) => ({ ...current, crossfade: applied }));
 
     return {
       state,

@@ -1,6 +1,7 @@
 import { Effect } from "effect";
 import { Atom } from "effect/unstable/reactivity";
 
+import { runtime } from "../runtime.ts";
 import type {
   WirePlumberCrossfadeError,
   WirePlumberCrossfadeRollbackError,
@@ -21,8 +22,8 @@ export type WirePlumberModel = {
   >;
 };
 
-/** Initializes WirePlumber and creates the atoms that use its service. */
-export const wirePlumber = Atom.make(
+/** Initializes WirePlumber using settings that survive backend reconnects. */
+export const wirePlumber = runtime.atom(
   makeWirePlumberService.pipe(
     Effect.map((service): WirePlumberModel => ({
       state: Atom.subscriptionRef(service.state),

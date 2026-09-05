@@ -16,7 +16,7 @@
     "format:check": "oxfmt --check .",
     "typecheck": "gtkx codegen && tsc --noEmit",
     "start": "node dist/bundle.mjs",
-    "test": "vitest",
+    "test": "GSETTINGS_BACKEND=memory vitest",
     "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test --run"
   },
   "dependencies": {

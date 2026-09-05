@@ -57,6 +57,12 @@ export const WirePlumberProvider = ({ children }: PropsWithChildren) => {
           title = "Mixamp outputs did not become ready";
           description = "The Game and Voice outputs did not become available in PipeWire.";
           break;
+        case "WirePlumberCrossfadeError":
+        case "WirePlumberSinkGainError":
+        case "WirePlumberCrossfadeRollbackError":
+          title = "Could not restore the balance";
+          description = "Your previous balance is remembered. Reconnect to try restoring it again.";
+          break;
         default:
           return error satisfies never;
       }
