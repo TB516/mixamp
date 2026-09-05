@@ -1,9 +1,10 @@
 [Desktop Entry]
 Type=Application
 Name=Mixamp
-Comment=Control application audio with PipeWire
+Comment=Balance game and voice audio
 Exec=mixamp
 Icon=io.github.TB516.mixamp
 Terminal=false
 Categories=AudioVideo;Audio;Mixer;
 StartupNotify=true
+Keywords=Game;Voice;Chat;Balance;PipeWire;

@@ -1,0 +1,64 @@
+name: Flatpak release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  flatpak:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:gnome-50
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Check release version
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import sys
+
+          with open("package.json") as package:
+              version = json.load(package)["version"]
+          if os.environ["RELEASE_TAG"] != f"v{version}":
+              sys.exit(f"Tag must match package.json version: v{version}")
+          PY
+
+      - name: Validate desktop metadata
+        run: |
+          desktop-file-validate flatpak/io.github.TB516.mixamp.desktop
+          appstreamcli validate --no-net flatpak/io.github.TB516.mixamp.metainfo.xml
+
+      - name: Build Flatpak
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: flatpak/io.github.TB516.mixamp.yml
+          bundle: mixamp-${{ github.ref_name }}.flatpak
+          arch: x86_64
+          build-dir: build-flatpak/build
+          repo-dir: build-flatpak/repo
+          cache-key: flatpak-builder-${{ github.sha }}
+
+      - name: Create draft release
+        uses: softprops/action-gh-release@v3
+        with:
+          draft: true
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: mixamp-*.flatpak

@@ -2,12 +2,33 @@
 <component type="desktop-application">
   <id>io.github.TB516.mixamp</id>
   <name>Mixamp</name>
-  <summary>Control application audio with PipeWire</summary>
+  <summary>Balance game and voice audio</summary>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <description>
-    <p>Mixamp is a desktop mixer for PipeWire audio streams.</p>
+    <p>
+      Mixamp gives you separate Game and Voice outputs and a single control to
+      balance them. Send your game to Mixamp Game and your chat app to Mixamp
+      Voice in their audio settings. Both play through your system's default
+      audio output.
+    </p>
+    <p>
+      Move the balance toward Game to lower Voice, or toward Voice to lower
+      Game. Center restores both to full volume. Mixamp remembers your balance
+      between sessions and can keep running with its window closed when you
+      allow background access.
+    </p>
+    <p>
+      Mixamp requires PipeWire. Game and chat audio must come from separate
+      app outputs for Mixamp to balance them.
+    </p>
   </description>
+  <developer id="io.github.tb516">
+    <name>Thomas</name>
+  </developer>
+  <url type="homepage">https://github.com/TB516/mixamp</url>
+  <url type="bugtracker">https://github.com/TB516/mixamp/issues</url>
+  <url type="vcs-browser">https://github.com/TB516/mixamp</url>
   <launchable type="desktop-id">io.github.TB516.mixamp.desktop</launchable>
   <provides>
     <binary>mixamp</binary>
@@ -16,5 +37,11 @@
     <category>AudioVideo</category>
     <category>Audio</category>
   </categories>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Balance Game and Voice audio</caption>
+      <image>https://raw.githubusercontent.com/TB516/mixamp/main/assets/screenshots/balance.png</image>
+    </screenshot>
+  </screenshots>
   <content_rating type="oars-1.1" />
 </component>
