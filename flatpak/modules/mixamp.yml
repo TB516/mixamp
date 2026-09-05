@@ -12,6 +12,7 @@ build-commands:
   - install -Dm644 dist/bundle.mjs /app/share/mixamp/bundle.mjs
   - install -Dm644 dist/gschemas.compiled /app/share/mixamp/gschemas.compiled
   - install -Dm755 dist/gtkx.node /app/share/mixamp/gtkx.node
+  - install -Dm644 dist/gtkx.gresource /app/share/mixamp/gtkx.gresource
   - install -Dm644 flatpak/io.github.TB516.mixamp.desktop /app/share/applications/io.github.TB516.mixamp.desktop
   - install -Dm644 flatpak/io.github.TB516.mixamp.metainfo.xml /app/share/metainfo/io.github.TB516.mixamp.metainfo.xml
   - install -Dm644 assets/io.github.TB516.mixamp.svg /app/share/icons/hicolor/scalable/apps/io.github.TB516.mixamp.svg
