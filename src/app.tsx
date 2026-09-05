@@ -10,6 +10,7 @@ import { useState } from "react";
 
 import { backgroundState } from "./background/index.ts";
 import { AboutDialog } from "./components/about-dialog.tsx";
+import { HelpDialog } from "./components/help-dialog.tsx";
 import { WirePlumberProvider } from "./providers/wireplumber-provider.tsx";
 import { MainScreen } from "./screens/main-screen.tsx";
 
@@ -29,6 +30,7 @@ const useHideOnClose = () => {
 export const App = () => {
   const hideOnClose = useHideOnClose();
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
 
   return (
     <AdwApplication
@@ -36,6 +38,7 @@ export const App = () => {
       onShutdown={() => Gio.Settings.sync()}
       actions={
         <>
+          <GSimpleAction name="help" onActivate={() => setHelpOpen(true)} />
           <GSimpleAction name="about" onActivate={() => setAboutOpen(true)} />
           <GSimpleAction name="quit" onActivate={() => quit()} />
         </>
@@ -60,6 +63,7 @@ export const App = () => {
                   menuModel={
                     <GMenu
                       items={[
+                        { label: "Help", action: "app.help" },
                         { label: "About Mixamp", action: "app.about" },
                         { label: "Quit", action: "app.quit" },
                       ]}
@@ -75,6 +79,7 @@ export const App = () => {
           </WirePlumberProvider>
         </AdwToolbarView>
         {aboutOpen && <AboutDialog onClosed={() => setAboutOpen(false)} />}
+        {helpOpen && <HelpDialog onClosed={() => setHelpOpen(false)} />}
       </AdwApplicationWindow>
     </AdwApplication>
   );
