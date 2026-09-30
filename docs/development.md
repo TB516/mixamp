@@ -7,6 +7,7 @@ The host needs `flatpak-dev`, Flatpak, Flatpak Builder, the OpenSSH client tools
 ```sh
 flatpak install --user flathub org.gnome.Platform//50 org.gnome.Sdk//50 org.freedesktop.Sdk.Extension.node24//25.08
 ```
+
 ## Run commands
 
 From this checkout:
@@ -49,10 +50,10 @@ There is no fixed SSH port or separate startup command. Commands and SSH session
 
 ## Package the app
 
-The application packaging script remains available:
+Build the installable Flatpak bundle from the host:
 
 ```sh
-./scripts/build-flatpak
+mise run build
 ```
 
-It prints the path to the Flatpak bundle and its installation command.
+The task runs Flatpak Builder, which builds the app inside the SDK sandbox. It writes the bundle to `build-flatpak/io.github.TB516.mixamp.flatpak` and prints its installation command.
