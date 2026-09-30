@@ -26,5 +26,6 @@ cleanup:
 
 modules:
   - modules/wireplumber.yml
+  - modules/gtkx-test-tools.yml
   - modules/pnpm.yml
   - modules/mixamp.yml

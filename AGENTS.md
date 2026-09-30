@@ -4,10 +4,14 @@ Mixamp is a GTKX desktop app that provides separate Game and Voice PipeWire sink
 
 ## Flatpak development environment
 
-This repo has a devcontainer like tooling setup for its development environment. This is defined by the [development flatpak manifest](./flatpak//io.github.TB516.mixamp.dev.yml), and accessed by the [flatpak-dev script](./scripts/flatpak-dev). Run every development command inside the Flatpak SDK through:
+Use `flatpak-dev` with the [application manifest](flatpak/io.github.TB516.mixamp.yml) and [project profile](flatpak/.profile).
+
+Run development commands from this checkout inside the shared Flatpak SDK sandbox:
 
 ```sh
-./scripts/flatpak-dev run <command> [args...]
+flatpak-dev run -- COMMAND [ARGS...]
 ```
 
-This includes pnpm, Node, code generation, type checking, formatting, linting, tests, builds, and app commands. A good rule of hand is if the tool version is important and it is used to run or modify the project code/dependencies, it should be run in the flatpak env.
+This includes pnpm, Node, code generation, type checking, formatting, linting, tests, builds, and app commands. Tools that run or modify project code and dependencies belong in the sandbox.
+
+See [development setup](docs/development.md) for SDK requirements and editor connections.
