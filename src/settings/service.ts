@@ -23,17 +23,16 @@ export const settingsLayer = Layer.effect(
 
     return {
       balance: Ref.get(balance),
-      rememberBalance: (value: number) =>
-        Effect.gen(function* () {
-          yield* Ref.set(balance, value);
+      rememberBalance: Effect.fn("Settings.rememberBalance")(function* (value: number) {
+        yield* Ref.set(balance, value);
 
-          const saved = settings.setDouble("balance", value);
-          if (saved) {
-            return;
-          }
+        const saved = settings.setDouble("balance", value);
+        if (saved) {
+          return;
+        }
 
-          yield* Effect.logWarning("Could not save balance to GSettings; kept for this session.");
-        }),
+        yield* Effect.logWarning("Could not save balance to GSettings; kept for this session.");
+      }),
     };
   }),
 );

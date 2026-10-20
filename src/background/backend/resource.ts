@@ -42,23 +42,22 @@ const makeRequestParameters = (reason: string, handleToken: string): GLib.Varian
   ]);
 
 /** Creates the SetStatus parameters expected by the portal. */
-const makeStatusParameters = (
+const makeStatusParameters = Effect.fn("makeStatusParameters")(function* (
   message: string,
-): Effect.Effect<GLib.Variant, BackgroundPortalError> =>
-  Effect.gen(function* () {
-    if (message.length > 96) {
-      return yield* new BackgroundPortalError({
-        operation: "status",
-        cause: new Error("Background status messages must not exceed 96 characters"),
-      });
-    }
+): Effect.fn.Return<GLib.Variant, BackgroundPortalError> {
+  if (message.length > 96) {
+    return yield* new BackgroundPortalError({
+      operation: "status",
+      cause: new Error("Background status messages must not exceed 96 characters"),
+    });
+  }
 
-    return toVariant("(a{sv})", [
-      {
-        message: toVariant("s", message),
-      },
-    ]);
-  });
+  return toVariant("(a{sv})", [
+    {
+      message: toVariant("s", message),
+    },
+  ]);
+});
 
 /** Calls a method on the desktop portal. */
 const callPortal = (
@@ -83,51 +82,51 @@ const callPortal = (
   });
 
 /** Reads a request object path from RequestBackground's reply. */
-const readRequestPath = (reply: GLib.Variant): Effect.Effect<string, BackgroundPortalError> =>
-  Effect.gen(function* () {
-    const [path] = yield* Effect.try({
-      try: () => fromVariant("(o)", reply),
-      catch: (cause) => new BackgroundPortalError({ operation: "request", cause }),
-    });
-
-    if (path === undefined) {
-      return yield* new BackgroundPortalError({
-        operation: "request",
-        cause: new Error("RequestBackground returned no request path"),
-      });
-    }
-
-    return path;
+const readRequestPath = Effect.fn("readRequestPath")(function* (
+  reply: GLib.Variant,
+): Effect.fn.Return<string, BackgroundPortalError> {
+  const [path] = yield* Effect.try({
+    try: () => fromVariant("(o)", reply),
+    catch: (cause) => new BackgroundPortalError({ operation: "request", cause }),
   });
+
+  if (path === undefined) {
+    return yield* new BackgroundPortalError({
+      operation: "request",
+      cause: new Error("RequestBackground returned no request path"),
+    });
+  }
+
+  return path;
+});
 
 /** Reads the permission result from a Request.Response signal. */
-const readBackgroundResponse = (
+const readBackgroundResponse = Effect.fn("readBackgroundResponse")(function* (
   parameters: GLib.Variant,
-): Effect.Effect<boolean, BackgroundPortalError> =>
-  Effect.gen(function* () {
-    const [responseCode, results] = yield* Effect.try({
-      try: () => fromVariant("(ua{sv})", parameters),
-      catch: (cause) => new BackgroundPortalError({ operation: "response", cause }),
-    });
-
-    if (responseCode !== 0) {
-      return false;
-    }
-
-    const background = results.background;
-
-    if (background === undefined) {
-      return yield* new BackgroundPortalError({
-        operation: "response",
-        cause: new Error("Background response contained no permission result"),
-      });
-    }
-
-    return yield* Effect.try({
-      try: () => fromVariant("b", background),
-      catch: (cause) => new BackgroundPortalError({ operation: "response", cause }),
-    });
+): Effect.fn.Return<boolean, BackgroundPortalError> {
+  const [responseCode, results] = yield* Effect.try({
+    try: () => fromVariant("(ua{sv})", parameters),
+    catch: (cause) => new BackgroundPortalError({ operation: "response", cause }),
   });
+
+  if (responseCode !== 0) {
+    return false;
+  }
+
+  const background = results.background;
+
+  if (background === undefined) {
+    return yield* new BackgroundPortalError({
+      operation: "response",
+      cause: new Error("Background response contained no permission result"),
+    });
+  }
+
+  return yield* Effect.try({
+    try: () => fromVariant("b", background),
+    catch: (cause) => new BackgroundPortalError({ operation: "response", cause }),
+  });
+});
 
 /** Effect and controls for one portal Request.Response subscription. */
 type BackgroundResponseWaiter = {
@@ -161,129 +160,122 @@ const unsubscribeFromBackgroundResponse = (
 ): Effect.Effect<void> => Effect.sync(() => connection.signalUnsubscribe(subscriptionId));
 
 /** Builds a response waiter and owns its signal subscription in the current scope. */
-const makeBackgroundResponseWaiter = (
+const makeBackgroundResponseWaiter = Effect.fn("makeBackgroundResponseWaiter")(function* (
   connection: Gio.DBusConnection,
-): Effect.Effect<BackgroundResponseWaiter, never, Scope.Scope> =>
-  Effect.gen(function* () {
-    const context = yield* Effect.context<never>();
-    const response = yield* Deferred.make<GLib.Variant>();
-    let requestPath: string | undefined;
-    const earlyResponses = new Map<string, GLib.Variant>();
+): Effect.fn.Return<BackgroundResponseWaiter, never, Scope.Scope> {
+  const context = yield* Effect.context<never>();
+  const response = yield* Deferred.make<GLib.Variant>();
+  let requestPath: string | undefined;
+  const earlyResponses = new Map<string, GLib.Variant>();
 
-    const processResponse = (
-      objectPath: string,
-      responseParameters: GLib.Variant,
-    ): Effect.Effect<void> =>
-      Effect.gen(function* () {
-        if (requestPath === undefined) {
-          earlyResponses.set(objectPath, responseParameters);
-          return;
-        }
-
-        if (objectPath !== requestPath) {
-          return;
-        }
-
-        yield* Deferred.succeed(response, responseParameters);
-      });
-
-    const handleResponse: Gio.DBusSignalCallback = (
-      _connection,
-      _senderName,
-      objectPath,
-      _interfaceName,
-      _signalName,
-      responseParameters,
-    ) => {
-      Effect.runSyncWith(context)(
-        processResponse(objectPath, responseParameters).pipe(
-          Effect.catchCause((cause) => Deferred.failCause(response, cause)),
-        ),
-      );
-    };
-
-    yield* Effect.acquireRelease(
-      subscribeToBackgroundResponse(connection, handleResponse),
-      (subscriptionId) => unsubscribeFromBackgroundResponse(connection, subscriptionId),
-    );
-
-    return {
-      response: Deferred.await(response),
-      setRequestPath: (path) =>
-        Effect.gen(function* () {
-          requestPath = path;
-          const earlyResponse = earlyResponses.get(path);
-
-          if (earlyResponse === undefined) {
-            return;
-          }
-
-          yield* Deferred.succeed(response, earlyResponse);
-        }),
-    };
-  });
-
-/** Requests permission and waits for the portal Request.Response signal. */
-const requestBackground = (
-  connection: Gio.DBusConnection,
-  reason: string,
-): Effect.Effect<boolean, BackgroundPortalError> =>
-  Effect.gen(function* () {
-    const handleToken = makeBackgroundHandleToken();
-    const parameters = makeRequestParameters(reason, handleToken);
-
-    return yield* Effect.scoped(
-      Effect.gen(function* () {
-        const waiter = yield* makeBackgroundResponseWaiter(connection);
-        const reply = yield* callPortal(connection, "RequestBackground", parameters, "request");
-        const requestPath = yield* readRequestPath(reply);
-
-        yield* waiter.setRequestPath(requestPath);
-        const response = yield* waiter.response;
-
-        return yield* readBackgroundResponse(response);
-      }),
-    );
-  });
-
-/** Sends an optional status message to the desktop environment. */
-const setPortalStatus = (
-  connection: Gio.DBusConnection,
-  message: string,
-): Effect.Effect<void, BackgroundPortalError> =>
-  Effect.gen(function* () {
-    const parameters = yield* makeStatusParameters(message);
-    yield* callPortal(connection, "SetStatus", parameters, "status");
-    return;
-  });
-
-/** Creates the scoped background portal resource. */
-export const makeBackgroundResource = (
-  state: SubscriptionRef.SubscriptionRef<BackgroundState>,
-): Effect.Effect<SubscriptionRef.SubscriptionRef<BackgroundState>, never, Scope.Scope> =>
-  Effect.gen(function* () {
-    const connection = yield* makeSessionBusConnection.pipe(
-      Effect.catchTag("BackgroundPortalError", () => Effect.succeed(null)),
-    );
-
-    if (connection === null) {
-      yield* SubscriptionRef.set(state, "unavailable");
-
-      return state;
+  const processResponse = Effect.fn("processResponse")(function* (
+    objectPath: string,
+    responseParameters: GLib.Variant,
+  ) {
+    if (requestPath === undefined) {
+      earlyResponses.set(objectPath, responseParameters);
+      return;
     }
 
-    yield* Effect.gen(function* () {
-      const allowed = yield* requestBackground(connection, BACKGROUND_REASON);
-      yield* SubscriptionRef.set(state, allowed ? "allowed" : "denied");
+    if (objectPath !== requestPath) {
+      return;
+    }
 
-      if (!allowed) {
+    yield* Deferred.succeed(response, responseParameters);
+  });
+
+  const handleResponse: Gio.DBusSignalCallback = (
+    _connection,
+    _senderName,
+    objectPath,
+    _interfaceName,
+    _signalName,
+    responseParameters,
+  ) => {
+    Effect.runSyncWith(context)(
+      processResponse(objectPath, responseParameters).pipe(
+        Effect.catchCause((cause) => Deferred.failCause(response, cause)),
+      ),
+    );
+  };
+
+  yield* Effect.acquireRelease(
+    subscribeToBackgroundResponse(connection, handleResponse),
+    (subscriptionId) => unsubscribeFromBackgroundResponse(connection, subscriptionId),
+  );
+
+  return {
+    response: Deferred.await(response),
+    setRequestPath: Effect.fn("setRequestPath")(function* (path: string) {
+      requestPath = path;
+      const earlyResponse = earlyResponses.get(path);
+
+      if (earlyResponse === undefined) {
         return;
       }
 
-      yield* setPortalStatus(connection, DEFAULT_STATUS).pipe(Effect.ignore);
-    }).pipe(
-      Effect.catchTag("BackgroundPortalError", () => SubscriptionRef.set(state, "unavailable")),
-    );
+      yield* Deferred.succeed(response, earlyResponse);
+    }),
+  };
+});
+
+/** Requests permission and waits for the portal Request.Response signal. */
+const requestBackground = Effect.fn("requestBackground")(function* (
+  connection: Gio.DBusConnection,
+  reason: string,
+): Effect.fn.Return<boolean, BackgroundPortalError> {
+  const handleToken = makeBackgroundHandleToken();
+  const parameters = makeRequestParameters(reason, handleToken);
+
+  return yield* Effect.scoped(
+    Effect.gen(function* () {
+      const waiter = yield* makeBackgroundResponseWaiter(connection);
+      const reply = yield* callPortal(connection, "RequestBackground", parameters, "request");
+      const requestPath = yield* readRequestPath(reply);
+
+      yield* waiter.setRequestPath(requestPath);
+      const response = yield* waiter.response;
+
+      return yield* readBackgroundResponse(response);
+    }),
+  );
+});
+
+/** Sends an optional status message to the desktop environment. */
+const setPortalStatus = Effect.fn("setPortalStatus")(function* (
+  connection: Gio.DBusConnection,
+  message: string,
+): Effect.fn.Return<void, BackgroundPortalError> {
+  const parameters = yield* makeStatusParameters(message);
+  yield* callPortal(connection, "SetStatus", parameters, "status");
+});
+
+/** Creates the scoped background portal resource. */
+export const makeBackgroundResource = Effect.fn("makeBackgroundResource")(function* (
+  state: SubscriptionRef.SubscriptionRef<BackgroundState>,
+): Effect.fn.Return<SubscriptionRef.SubscriptionRef<BackgroundState>, never, Scope.Scope> {
+  const connection = yield* makeSessionBusConnection.pipe(
+    Effect.catchTag("BackgroundPortalError", () => Effect.succeed(null)),
+  );
+
+  if (connection === null) {
+    yield* SubscriptionRef.set(state, "unavailable");
 
     return state;
-  });
+  }
+
+  yield* Effect.gen(function* () {
+    const allowed = yield* requestBackground(connection, BACKGROUND_REASON);
+    yield* SubscriptionRef.set(state, allowed ? "allowed" : "denied");
+
+    if (!allowed) {
+      return;
+    }
+
+    yield* setPortalStatus(connection, DEFAULT_STATUS).pipe(Effect.ignore);
+  }).pipe(
+    Effect.catchTag("BackgroundPortalError", () => SubscriptionRef.set(state, "unavailable")),
+  );
+
+  return state;
+});

@@ -19,25 +19,24 @@ const makeVolumePod = (gain: number): Effect.Effect<Wp.SpaPod> =>
   });
 
 /** Applies a gain to a virtual sink. */
-const setSinkGain = (
+const setSinkGain = Effect.fn("setSinkGain")(function* (
   node: Wp.Node,
   sink: WirePlumberSink,
   gain: number,
-): Effect.Effect<void, WirePlumberSinkGainError> =>
-  Effect.gen(function* () {
-    const volumePod = yield* makeVolumePod(gain);
-    const updated = node.setParam("Props", 0, volumePod);
+): Effect.fn.Return<void, WirePlumberSinkGainError> {
+  const volumePod = yield* makeVolumePod(gain);
+  const updated = node.setParam("Props", 0, volumePod);
 
-    if (updated) {
-      return;
-    }
+  if (updated) {
+    return;
+  }
 
-    return yield* new WirePlumberSinkGainError({
-      sink,
-      gain,
-      cause: "Wp.Node.setParam() returned false",
-    });
+  return yield* new WirePlumberSinkGainError({
+    sink,
+    gain,
+    cause: "Wp.Node.setParam() returned false",
   });
+});
 
 /** Clamps a crossfade, returning undefined when it is not finite. */
 const clampCrossfade = (crossfade: number): number | undefined => {
@@ -49,53 +48,52 @@ const clampCrossfade = (crossfade: number): number | undefined => {
 };
 
 /** Applies the Game/Voice balance and returns the clamped value. */
-export const setVirtualSinkCrossfade = (
+export const setVirtualSinkCrossfade = Effect.fn("setVirtualSinkCrossfade")(function* (
   playbackNodes: PlaybackNodes,
   crossfade: number,
   previousCrossfade = 0,
-): Effect.Effect<
+): Effect.fn.Return<
   number,
   WirePlumberCrossfadeError | WirePlumberSinkGainError | WirePlumberCrossfadeRollbackError
-> =>
-  Effect.gen(function* () {
-    const value = clampCrossfade(crossfade);
-    if (value === undefined) {
-      return yield* new WirePlumberCrossfadeError({
-        cause: "Crossfade must be a finite number",
-      });
-    }
+> {
+  const value = clampCrossfade(crossfade);
+  if (value === undefined) {
+    return yield* new WirePlumberCrossfadeError({
+      cause: "Crossfade must be a finite number",
+    });
+  }
 
-    const previousValue = clampCrossfade(previousCrossfade);
-    if (previousValue === undefined) {
-      return yield* new WirePlumberCrossfadeError({
-        cause: "Previous crossfade must be a finite number",
-      });
-    }
+  const previousValue = clampCrossfade(previousCrossfade);
+  if (previousValue === undefined) {
+    return yield* new WirePlumberCrossfadeError({
+      cause: "Previous crossfade must be a finite number",
+    });
+  }
 
-    const gameGain = value > 0 ? 1 - value : 1;
-    const voiceGain = value < 0 ? 1 + value : 1;
-    const previousGameGain = previousValue > 0 ? 1 - previousValue : 1;
+  const gameGain = value > 0 ? 1 - value : 1;
+  const voiceGain = value < 0 ? 1 + value : 1;
+  const previousGameGain = previousValue > 0 ? 1 - previousValue : 1;
 
-    yield* setSinkGain(playbackNodes.game, "game", gameGain);
-    yield* setSinkGain(playbackNodes.voice, "voice", voiceGain).pipe(
-      Effect.catch((updateError) =>
-        Effect.gen(function* () {
-          yield* setSinkGain(playbackNodes.game, "game", previousGameGain).pipe(
-            Effect.mapError(
-              (rollbackError) =>
-                new WirePlumberCrossfadeRollbackError({
-                  crossfade: value,
-                  previousCrossfade: previousValue,
-                  updateError,
-                  rollbackError,
-                }),
-            ),
-          );
+  yield* setSinkGain(playbackNodes.game, "game", gameGain);
+  yield* setSinkGain(playbackNodes.voice, "voice", voiceGain).pipe(
+    Effect.catch(
+      Effect.fn("rollbackGameGain")(function* (updateError: WirePlumberSinkGainError) {
+        yield* setSinkGain(playbackNodes.game, "game", previousGameGain).pipe(
+          Effect.mapError(
+            (rollbackError) =>
+              new WirePlumberCrossfadeRollbackError({
+                crossfade: value,
+                previousCrossfade: previousValue,
+                updateError,
+                rollbackError,
+              }),
+          ),
+        );
 
-          return yield* updateError;
-        }),
-      ),
-    );
+        return yield* updateError;
+      }),
+    ),
+  );
 
-    return value;
-  });
+  return value;
+});

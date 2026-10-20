@@ -11,43 +11,42 @@ import { makePlaybackNodeManager, waitForPlaybackNodes } from "./playback-nodes.
 import type { PlaybackNodes } from "./playback-nodes.ts";
 
 /** Loads a Game or Voice sink as a PipeWire loopback module. */
-const loadVirtualSink = (
+const loadVirtualSink = Effect.fn("loadVirtualSink")(function* (
   core: Wp.Core,
   sink: WirePlumberSink,
-): Effect.Effect<Wp.ImplModule, WirePlumberVirtualSinkLoadError> =>
-  Effect.gen(function* () {
-    const definition = sinkDefinitions[sink];
-    const name = wirePlumberSinkNames[sink];
-    const module = Wp.ImplModule.load(
-      core,
-      "libpipewire-module-loopback",
-      JSON.stringify({
+): Effect.fn.Return<Wp.ImplModule, WirePlumberVirtualSinkLoadError> {
+  const definition = sinkDefinitions[sink];
+  const name = wirePlumberSinkNames[sink];
+  const module = Wp.ImplModule.load(
+    core,
+    "libpipewire-module-loopback",
+    JSON.stringify({
+      "node.description": name,
+      "capture.props": {
+        "node.name": definition.nodeName,
         "node.description": name,
-        "capture.props": {
-          "node.name": definition.nodeName,
-          "node.description": name,
-          "media.class": "Audio/Sink",
-          "audio.position": ["FL", "FR"],
-        },
-        "playback.props": {
-          "node.name": `${definition.nodeName}.output`,
-          "audio.position": ["FL", "FR"],
-          "node.passive": true,
-          "stream.dont-remix": true,
-        },
-      }),
-      null,
-    );
+        "media.class": "Audio/Sink",
+        "audio.position": ["FL", "FR"],
+      },
+      "playback.props": {
+        "node.name": `${definition.nodeName}.output`,
+        "audio.position": ["FL", "FR"],
+        "node.passive": true,
+        "stream.dont-remix": true,
+      },
+    }),
+    null,
+  );
 
-    if (module) {
-      return module;
-    }
+  if (module) {
+    return module;
+  }
 
-    return yield* new WirePlumberVirtualSinkLoadError({
-      sink,
-      cause: `Wp.ImplModule.load() returned null for ${definition.nodeName}`,
-    });
+  return yield* new WirePlumberVirtualSinkLoadError({
+    sink,
+    cause: `Wp.ImplModule.load() returned null for ${definition.nodeName}`,
   });
+});
 
 /**
  * Creates Mixamp's virtual sinks.
@@ -55,26 +54,25 @@ const loadVirtualSink = (
  * With no explicit playback target, WirePlumber routes each sink to the current
  * default audio output and follows changes to that default.
  */
-export const makeVirtualSinks = (
+export const makeVirtualSinks = Effect.fn("makeVirtualSinks")(function* (
   core: Wp.Core,
-): Effect.Effect<
+): Effect.fn.Return<
   PlaybackNodes,
   WirePlumberVirtualSinkLoadError | WirePlumberPlaybackNodeTimeoutError,
   Scope.Scope
-> =>
-  Effect.gen(function* () {
-    const objectManager = yield* makePlaybackNodeManager(core);
+> {
+  const objectManager = yield* makePlaybackNodeManager(core);
 
-    yield* Effect.acquireRelease(loadVirtualSink(core, "game"), (module) =>
-      Effect.sync(() => {
-        module.unload();
-      }),
-    );
-    yield* Effect.acquireRelease(loadVirtualSink(core, "voice"), (module) =>
-      Effect.sync(() => {
-        module.unload();
-      }),
-    );
+  yield* Effect.acquireRelease(loadVirtualSink(core, "game"), (module) =>
+    Effect.sync(() => {
+      module.unload();
+    }),
+  );
+  yield* Effect.acquireRelease(loadVirtualSink(core, "voice"), (module) =>
+    Effect.sync(() => {
+      module.unload();
+    }),
+  );
 
-    return yield* waitForPlaybackNodes(objectManager);
-  });
+  return yield* waitForPlaybackNodes(objectManager);
+});

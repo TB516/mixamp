@@ -30,18 +30,19 @@ const makeCore: Effect.Effect<Wp.Core> = Effect.gen(function* () {
 });
 
 /** Connects a WirePlumber core to PipeWire. */
-const connectCore = (core: Wp.Core): Effect.Effect<void, WirePlumberConnectionError> =>
-  Effect.gen(function* () {
-    const connected = core.coreConnect();
+const connectCore = Effect.fn("connectCore")(function* (
+  core: Wp.Core,
+): Effect.fn.Return<void, WirePlumberConnectionError> {
+  const connected = core.coreConnect();
 
-    if (connected) {
-      return;
-    }
+  if (connected) {
+    return;
+  }
 
-    return yield* new WirePlumberConnectionError({
-      cause: "Wp.Core.coreConnect() returned false",
-    });
+  return yield* new WirePlumberConnectionError({
+    cause: "Wp.Core.coreConnect() returned false",
   });
+});
 
 /** Registers a scoped handler for a WirePlumber core signal. */
 const acquireCoreSignal = (
@@ -70,10 +71,10 @@ const releaseCore = (core: Wp.Core, state: SubscriptionRef.SubscriptionRef<WireP
  *
  * The returned Effect owns the core and its signal handlers until its scope closes.
  */
-export const makeWirePlumberResource = (
+export const makeWirePlumberResource = Effect.fn("makeWirePlumberResource")(function* (
   state: SubscriptionRef.SubscriptionRef<WirePlumberState>,
   initialBalance: number,
-): Effect.Effect<
+): Effect.fn.Return<
   WirePlumberService,
   | WirePlumberConnectionError
   | WirePlumberVirtualSinkLoadError
@@ -82,44 +83,42 @@ export const makeWirePlumberResource = (
   | WirePlumberSinkGainError
   | WirePlumberCrossfadeRollbackError,
   Scope.Scope
-> =>
-  Effect.gen(function* () {
-    const context = yield* Effect.context<never>();
-    const core = yield* Effect.acquireRelease(makeCore, (core) => releaseCore(core, state));
+> {
+  const context = yield* Effect.context<never>();
+  const core = yield* Effect.acquireRelease(makeCore, (core) => releaseCore(core, state));
 
-    yield* acquireCoreSignal(core, "connected", () =>
-      Effect.runSyncWith(context)(
-        SubscriptionRef.update(state, (current) => ({ ...current, connected: true })),
-      ),
-    );
-    yield* acquireCoreSignal(core, "disconnected", () =>
-      Effect.runSyncWith(context)(
-        SubscriptionRef.update(state, (current) => ({ ...current, connected: false })),
-      ),
-    );
+  yield* acquireCoreSignal(core, "connected", () =>
+    Effect.runSyncWith(context)(
+      SubscriptionRef.update(state, (current) => ({ ...current, connected: true })),
+    ),
+  );
+  yield* acquireCoreSignal(core, "disconnected", () =>
+    Effect.runSyncWith(context)(
+      SubscriptionRef.update(state, (current) => ({ ...current, connected: false })),
+    ),
+  );
 
-    yield* connectCore(core);
-    yield* SubscriptionRef.update(state, (current) => ({ ...current, connected: true }));
+  yield* connectCore(core);
+  yield* SubscriptionRef.update(state, (current) => ({ ...current, connected: true }));
 
-    const playbackNodes = yield* makeVirtualSinks(core);
+  const playbackNodes = yield* makeVirtualSinks(core);
 
-    // Fresh sinks start centered, which is also the rollback baseline.
-    const applied = yield* setVirtualSinkCrossfade(playbackNodes, initialBalance, 0);
-    yield* SubscriptionRef.update(state, (current) => ({ ...current, crossfade: applied }));
+  // Fresh sinks start centered, which is also the rollback baseline.
+  const applied = yield* setVirtualSinkCrossfade(playbackNodes, initialBalance, 0);
+  yield* SubscriptionRef.update(state, (current) => ({ ...current, crossfade: applied }));
 
-    return {
-      state,
-      setCrossfade: (crossfade) =>
-        Effect.gen(function* () {
-          const { crossfade: previousCrossfade } = yield* SubscriptionRef.get(state);
-          const value = yield* setVirtualSinkCrossfade(playbackNodes, crossfade, previousCrossfade);
+  return {
+    state,
+    setCrossfade: Effect.fn("WirePlumberResource.setCrossfade")(function* (crossfade: number) {
+      const { crossfade: previousCrossfade } = yield* SubscriptionRef.get(state);
+      const value = yield* setVirtualSinkCrossfade(playbackNodes, crossfade, previousCrossfade);
 
-          yield* SubscriptionRef.update(state, (current) => ({
-            ...current,
-            crossfade: value,
-          }));
+      yield* SubscriptionRef.update(state, (current) => ({
+        ...current,
+        crossfade: value,
+      }));
 
-          return value;
-        }),
-    };
-  });
+      return value;
+    }),
+  };
+});

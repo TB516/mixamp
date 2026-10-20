@@ -18,11 +18,10 @@ export const makeWirePlumberService = Effect.gen(function* () {
 
   return {
     state,
-    setCrossfade: (crossfade: number) =>
-      Effect.gen(function* () {
-        const applied = yield* backend.setCrossfade(crossfade);
-        yield* settings.rememberBalance(applied);
-        return applied;
-      }),
+    setCrossfade: Effect.fn("WirePlumberService.setCrossfade")(function* (crossfade: number) {
+      const applied = yield* backend.setCrossfade(crossfade);
+      yield* settings.rememberBalance(applied);
+      return applied;
+    }),
   } satisfies WirePlumberService;
 });
